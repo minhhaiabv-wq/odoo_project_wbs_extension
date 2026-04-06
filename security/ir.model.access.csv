@@ -1,3 +1,9 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_project_phases_user,access.project.phases.user,model_project_phases,base.group_user,1,1,1,1
-access_project_task_phase_user,access.project.task.phase.user,model_project_task_phase,base.group_user,1,1,1,1
+access_project_project_leader,project.project.leader,model_project_project,project_wbs_extension.group_project_leader,1,1,0,0
+access_project_task_leader,project.task.leader,model_project_task,project_wbs_extension.group_project_leader,1,1,1,1
+access_project_phases_member,project.phases.member,model_project_phases,project_wbs_extension.group_project_member,1,0,0,0
+access_project_phases_leader,project.phases.leader,model_project_phases,project_wbs_extension.group_project_leader,1,1,1,1
+access_project_phases_admin,project.phases.admin,model_project_phases,project.group_project_manager,1,1,1,1
+access_project_task_phase_member,project.task.phase.member,model_project_task_phase,project_wbs_extension.group_project_member,1,0,0,0
+access_project_task_phase_leader,project.task.phase.leader,model_project_task_phase,project_wbs_extension.group_project_leader,1,1,1,1
+access_project_task_phase_admin,project.task.phase.admin,model_project_task_phase,project.group_project_manager,1,1,1,1

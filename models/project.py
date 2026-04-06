@@ -55,7 +55,7 @@ class Project(models.Model):
         action = self.env["ir.actions.act_window"]._for_xml_id("project_wbs_extension.action_project_wbs")
         
         action.update({
-            'domain': [('project_id', '=', self.id)],
+            'domain': [('project_id', '=', self.id), ('project_id.active', '=', True)],
             'context': {
                 'default_project_id': self.id,
                 'search_default_group_by_project': 1,

@@ -6,6 +6,7 @@
     'category': 'Project',
     'description': 'Add Planned vs Actual fields on Project level',
     'data': [
+        'security/project_security.xml',
         'views/project_phase_views.xml',
         'views/project_project_views.xml',
         'views/project_task_views.xml',
