@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- for page project edit  -->
+    <record id="view_project_form_planning" model="ir.ui.view">
+        <field name="name">project.project.form.members</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="phase_ids" widget="many2many_tags"/>
+            </xpath>
+
+            <xpath expr="//sheet/group" position="after">
+                <group col="2">
+                    <group string="Members" colspan="2">
+                        <field name="member_ids" nolabel="1" colspan="2">
+                            <list>
+                                <field name="name"/>
+                                <field name="login"/>
+                                <field name="login_date"/>
+                            </list>
+                        </field>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- for page project type=list  -->
+    <record id="view_project_tree_planning" model="ir.ui.view">
+        <field name="name">project.project.list.planning</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="progress" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- for page project type=kanban  -->
+    <record id="view_project_kanban_inherit_wbs_menu" model="ir.ui.view">
+        <field name="name">project.project.kanban.inherit.wbs</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//a[@name='action_view_tasks']" position="after">
+                <a type="object" name="action_view_wbs">WBS</a>
+            </xpath>
+        </field>
+    </record>
+</odoo>

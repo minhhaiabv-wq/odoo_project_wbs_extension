@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_project_phase_list" model="ir.ui.view">
+        <field name="name">project.phase.list</field>
+        <field name="model">project.phases</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence"/>
+                <field name="name"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_project_phase_form" model="ir.ui.view">
+        <field name="name">project.phases.form</field>
+        <field name="model">project.phases</field>
+        <field name="arch" type="xml">
+            <form string="Phase">
+                <sheet>
+                    <group>
+                        <field name="sequence"/>
+                        <field name="name"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_project_phases" model="ir.actions.act_window">
+        <field name="name">Phases</field>
+        <field name="res_model">project.phases</field>
+        <field name="view_id" ref="view_project_phase_list"/>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_project_phase" name="Phases"
+            parent="project.menu_project_config"
+            action="action_project_phases"
+            sequence="1"/>
+</odoo>

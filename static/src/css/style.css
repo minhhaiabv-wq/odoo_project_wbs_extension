@@ -1,0 +1,12 @@
+/* css for table WBS */
+.wbs-list th[data-name="task_id"] {
+    width: 200px !important;
+}
+.wbs-list th[data-name="phase_id"] {
+    width: 50px !important;
+}
+.wbs-list th[data-name="planned_start"],
+.wbs-list th[data-name="actual_start"] {
+    min-width: 100px !important;
+    max-width: 130px !important;
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_task_form_wbs" model="ir.ui.view">
+        <field name="name">project.task.form.wbs</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='description_page']" position="after">
+                <page string="WBS">
+                    <field name="phase_line_ids">
+                        <list editable="bottom">
+                            <field name="phase_id"/>
+
+                            <field name="planned_start" string="Plan Start - End" widget="daterange" options='{"end_date_field": "planned_end", "always_range": "0"}' required="planned_start or planned_end"/>
+                            <field name="planned_end" column_invisible="1" required="planned_start"/>
+                            <field name="planned_user_ids" string="Plan Members" widget="many2many_avatar_user" domain="[('share', '=', False)]"/>
+                            <field name="planned_hours" widget="timesheet_uom" type="measure"/>
+
+                            <field name="actual_start" string="Actual Start - End" widget="daterange" options='{"end_date_field": "actual_end", "always_range": "0"}' required="actual_start or actual_end"/>
+                            <field name="actual_end" column_invisible="1" required="actual_start"/>
+                            <field name="actual_user_ids" string="Actual Members" widget="many2many_avatar_user" domain="[('share', '=', False)]"/>
+                            <field name="actual_hours" widget="timesheet_uom" type="measure"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
