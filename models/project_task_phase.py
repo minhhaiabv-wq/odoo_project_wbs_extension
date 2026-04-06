@@ -5,7 +5,6 @@ class ProjectTaskPhase(models.Model):
     _name = 'project.task.phase'
     _description = 'Task Phase (WBS)'
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _rec_name = 'display_name'
 
     project_id = fields.Many2one('project.project', related='task_id.project_id', store=True)
     task_id = fields.Many2one('project.task', required=True, ondelete='cascade', tracking=True)

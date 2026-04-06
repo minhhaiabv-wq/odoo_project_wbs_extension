@@ -6,7 +6,7 @@ class AccountAnalyticLine(models.Model):
 
     phase_id = fields.Many2one(
         'project.task.phase',
-        string='WBS Phase',
+        string='Phase',
         domain="[('project_id', '=', project_id), ('task_id', '=', task_id)]",
     )
 

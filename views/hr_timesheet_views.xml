@@ -36,7 +36,7 @@
                 <field name="phase_id"/>
             </xpath>
             <xpath expr="//group[@name='groupby']" position="inside">
-                <filter string="WBS Phase" name="groupby_phase" domain="[]" context="{'group_by': 'phase_id'}"/>
+                <filter string="Phase" name="groupby_phase" domain="[]" context="{'group_by': 'phase_id'}"/>
             </xpath>
         </field>
     </record>
