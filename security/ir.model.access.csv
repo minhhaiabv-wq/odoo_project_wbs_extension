@@ -9,6 +9,7 @@ project.access_project_task,project.task,model_project_task,project.group_projec
 access_task_leader,project.task,model_project_task,project_wbs_extension.group_project_leader,1,1,1,1
 access_project_role_leader,project.role,project.model_project_role,project_wbs_extension.group_project_leader,1,0,0,0
 access_task_member,project.task,model_project_task,project_wbs_extension.group_project_member,1,0,0,0
+access_project_role_member,project.role,project.model_project_role,project_wbs_extension.group_project_member,1,0,0,0
 
 access_project_task_type_manager,project.phase,model_project_phase,project.group_project_manager,1,1,1,1
 project.access_project_task,project.phase,model_project_phase,project.group_project_user,0,0,0,0
