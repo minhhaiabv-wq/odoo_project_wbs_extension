@@ -1,25 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <!-- Rename group "User: all timesheets" to "Leader" -->
+        <record id="hr_timesheet.group_hr_timesheet_approver" model="res.groups">
+            <field name="name">Leader</field>
+        </record>
+
+        <!-- Rename group "User: own timesheets only" to "Member" -->
+        <record id="hr_timesheet.group_hr_timesheet_user" model="res.groups">
+            <field name="name">Member</field>
+        </record>
+
+        <!-- Rename group "Administrator" to "Manager" -->
+        <record id="hr_timesheet.group_timesheet_manager" model="res.groups">
+            <field name="name">Manager</field>
+        </record>
+
+        <!-- Rename group project Admin to Manager-->
+        <record id="project.group_project_manager" model="res.groups">
+            <field name="name">Manager</field>
+        </record>
+
+        <!-- Rename group project User to Other ( Not Use) -->
+        <record id="project.group_project_user" model="res.groups">
+            <field name="name">Other</field>
+        </record>
+
+        <!-- Create new group project Member -->
         <record id="group_project_member" model="res.groups">
             <field name="name">Member</field>
             <field name="privilege_id" ref="project.res_groups_privilege_project"/>
             <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('hr_timesheet.group_hr_timesheet_user'))]"/>
         </record>
 
+        <!-- Create new group project Leader -->
         <record id="group_project_leader" model="res.groups">
             <field name="name">Leader</field>
             <field name="privilege_id" ref="project.res_groups_privilege_project"/>
             <field name="implied_ids" eval="[(4, ref('project_wbs_extension.group_project_member'))]"/>
         </record>
 
-        <!-- <record id="project.menu_main_pm" model="ir.ui.menu">
+        <!-- 
+        <record id="project.menu_main_pm" model="ir.ui.menu">
             <field name="group_ids" eval="[
                 (4, ref('project.group_project_manager')), 
                 (4, ref('project_wbs_extension.group_project_leader')), 
                 (4, ref('project_wbs_extension.group_project_member'))
             ]"/>
-        </record> -->
+        </record>
+         -->
     </data>
 
     <data noupdate="1">
