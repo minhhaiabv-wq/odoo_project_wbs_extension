@@ -28,15 +28,15 @@
         </field>
     </record>
 
-    <record id="action_project_phases" model="ir.actions.act_window">
-        <field name="name">Phases</field>
+    <record id="action_project_phase" model="ir.actions.act_window">
+        <field name="name">Phase</field>
         <field name="res_model">project.phase</field>
         <field name="view_id" ref="view_project_phase_list"/>
         <field name="target">current</field>
     </record>
 
-    <menuitem id="menu_project_phase" name="Phases"
+    <menuitem id="menu_project_phase" name="Phase"
             parent="project.menu_project_config"
-            action="action_project_phases"
+            action="action_project_phase"
             sequence="1"/>
 </odoo>

@@ -1,6 +1,6 @@
 from odoo import models, fields
 
-class ProjectPhases(models.Model):
+class ProjectPhase(models.Model):
     _name = 'project.phase'
     _description = 'Project Phase'
     _order = 'sequence, id'

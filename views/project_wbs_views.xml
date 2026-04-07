@@ -33,7 +33,7 @@
                 <filter string="IT Review" name="filter_phase_ps" domain="[('phase_id.display_name', '=', 'ITR')]"/>
                 <group>
                     <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
-                    <filter string="Phases" name="group_by_phase" context="{'group_by':'phase_id'}"/>
+                    <filter string="Phase" name="group_by_phase" context="{'group_by':'phase_id'}"/>
                     <filter string="Planned" name="group_by_planned" context="{'group_by':'planned_start'}"/>
                 </group>
             </search>

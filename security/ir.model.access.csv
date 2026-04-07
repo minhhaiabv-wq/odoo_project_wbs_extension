@@ -9,10 +9,10 @@ project.access_project_task,project.task,model_project_task,project.group_projec
 access_task_leader,project.task,model_project_task,project_wbs_extension.group_project_leader,1,1,1,1
 access_task_member,project.task,model_project_task,project_wbs_extension.group_project_member,1,0,0,0
 
-access_project_task_type_manager,project.phase,model_project_phases,project.group_project_manager,1,1,1,1
-project.access_project_task,project.phase,model_project_phases,project.group_project_user,0,0,0,0
-access_project_phase_leader,project.phase,model_project_phases,project_wbs_extension.group_project_leader,1,1,1,0
-access_project_phase_member,project.phase,model_project_phases,project_wbs_extension.group_project_member,1,0,0,0
+access_project_task_type_manager,project.phase,model_project_phase,project.group_project_manager,1,1,1,1
+project.access_project_task,project.phase,model_project_phase,project.group_project_user,0,0,0,0
+access_project_phase_leader,project.phase,model_project_phase,project_wbs_extension.group_project_leader,1,1,1,0
+access_project_phase_member,project.phase,model_project_phase,project_wbs_extension.group_project_member,1,0,0,0
 
 access_phase_manager,project.task.phase,model_project_task_phase,project.group_project_manager,1,1,1,1
 access_phase_user,project.task.phase,model_project_task_phase,project.group_project_user,1,0,0,0

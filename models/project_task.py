@@ -10,6 +10,6 @@ class ProjectTask(models.Model):
     phase_line_ids = fields.One2many(
         'project.task.phase',
         'task_id',
-        string='Phases (WBS)',
+        string='Phase (WBS)',
         tracking=True
     )

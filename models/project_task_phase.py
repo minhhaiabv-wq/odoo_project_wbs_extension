@@ -8,7 +8,7 @@ class ProjectTaskPhase(models.Model):
 
     project_id = fields.Many2one('project.project', related='task_id.project_id', store=True)
     task_id = fields.Many2one('project.task', required=True, ondelete='cascade', tracking=True)
-    phase_id = fields.Many2one('project.phases', required=True, tracking=True)
+    phase_id = fields.Many2one('project.phase', required=True, tracking=True)
 
     # ===== Planned =====
     planned_start = fields.Datetime(string='Planned Start', tracking=True)

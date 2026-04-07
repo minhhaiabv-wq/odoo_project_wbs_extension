@@ -13,8 +13,8 @@ class Project(models.Model):
     # Members
     member_ids = fields.Many2many('res.users', string='Members', tracking=True)
 
-    # Phases
-    phase_ids = fields.Many2many('project.phase', string='Phases', tracking=True)
+    # Phase
+    phase_ids = fields.Many2many('project.phase', string='Phase', tracking=True)
 
     @api.depends('task_ids.date_start', 'task_ids.date_end')
     def _compute_actual_dates(self):
