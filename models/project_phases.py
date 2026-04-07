@@ -1,8 +1,8 @@
 from odoo import models, fields
 
 class ProjectPhases(models.Model):
-    _name = 'project.phases'
-    _description = 'Phases'
+    _name = 'project.phase'
+    _description = 'Project Phase'
     _order = 'sequence, id'
 
     name = fields.Char(string='Phase Name', required=True)

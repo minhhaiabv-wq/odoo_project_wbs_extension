@@ -2,7 +2,7 @@
 <odoo>
     <record id="view_project_phase_list" model="ir.ui.view">
         <field name="name">project.phase.list</field>
-        <field name="model">project.phases</field>
+        <field name="model">project.phase</field>
         <field name="arch" type="xml">
             <list>
                 <field name="sequence"/>
@@ -13,8 +13,8 @@
     </record>
 
     <record id="view_project_phase_form" model="ir.ui.view">
-        <field name="name">project.phases.form</field>
-        <field name="model">project.phases</field>
+        <field name="name">project.phase.form</field>
+        <field name="model">project.phase</field>
         <field name="arch" type="xml">
             <form string="Phase">
                 <sheet>
@@ -30,7 +30,7 @@
 
     <record id="action_project_phases" model="ir.actions.act_window">
         <field name="name">Phases</field>
-        <field name="res_model">project.phases</field>
+        <field name="res_model">project.phase</field>
         <field name="view_id" ref="view_project_phase_list"/>
         <field name="target">current</field>
     </record>
