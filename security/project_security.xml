@@ -30,7 +30,7 @@
         <record id="group_project_member" model="res.groups">
             <field name="name">Member</field>
             <field name="privilege_id" ref="project.res_groups_privilege_project"/>
-            <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('hr_timesheet.group_hr_timesheet_user'))]"/>
+            <!-- <field name="implied_ids" eval="[(4, ref('base.group_user')), (4, ref('hr_timesheet.group_hr_timesheet_user'))]"/> -->
         </record>
 
         <!-- Create new group project Leader -->
@@ -40,7 +40,7 @@
             <field name="implied_ids" eval="[(4, ref('project_wbs_extension.group_project_member'))]"/>
         </record>
 
-        <!-- 
+        <!-- Hiện menu project cho 2 group Leader và Member -->
         <record id="project.menu_main_pm" model="ir.ui.menu">
             <field name="group_ids" eval="[
                 (4, ref('project.group_project_manager')), 
@@ -48,10 +48,10 @@
                 (4, ref('project_wbs_extension.group_project_member'))
             ]"/>
         </record>
-         -->
+        
     </data>
 
-    <data noupdate="1">
+    <data noupdate="0">
         <record id="project.project_public_members_rule" model="ir.rule">
             <field name="active" eval="False"/>
         </record>
@@ -126,6 +126,18 @@
             <field name="perm_create" eval="True"/>
             <field name="perm_unlink" eval="True"/>
             <field name="groups" eval="[(4, ref('project_wbs_extension.group_project_leader'))]"/>
+        </record>
+
+        <!-- Set permission for group Project Manager: Full control task -->
+        <record id="project_manager_task_rule" model="ir.rule">
+            <field name="name">Project Task: Managers can manage project tasks</field>
+            <field name="model_id" ref="project.model_project_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="groups" eval="[(4, ref('project.group_project_manager'))]"/>
         </record>
 
         <!-- Set permission for group Project Member: Only read WBS -->

@@ -7,11 +7,12 @@ access_project_member,project.project,model_project_project,project_wbs_extensio
 access_project_task_type_manager,project.task,model_project_task,project.group_project_manager,1,1,1,1
 project.access_project_task,project.task,model_project_task,project.group_project_user,0,0,0,0
 access_task_leader,project.task,model_project_task,project_wbs_extension.group_project_leader,1,1,1,1
+access_project_role_leader,project.role,project.model_project_role,project_wbs_extension.group_project_leader,1,0,0,0
 access_task_member,project.task,model_project_task,project_wbs_extension.group_project_member,1,0,0,0
 
 access_project_task_type_manager,project.phase,model_project_phase,project.group_project_manager,1,1,1,1
 project.access_project_task,project.phase,model_project_phase,project.group_project_user,0,0,0,0
-access_project_phase_leader,project.phase,model_project_phase,project_wbs_extension.group_project_leader,1,1,1,0
+access_project_phase_leader,project.phase,model_project_phase,project_wbs_extension.group_project_leader,1,1,0,0
 access_project_phase_member,project.phase,model_project_phase,project_wbs_extension.group_project_member,1,0,0,0
 
 access_phase_manager,project.task.phase,model_project_task_phase,project.group_project_manager,1,1,1,1
@@ -23,3 +24,6 @@ project.access_account_analytic_line_project,account.analytic.line project,model
 hr_timesheet.access_account_analytic_user,account.analytic.line project,model_account_analytic_line,project.group_project_user,0,0,0,0
 access_timesheet_leader,account.analytic.line project,model_account_analytic_line,project_wbs_extension.group_project_leader,1,1,1,1
 access_timesheet_member,account.analytic.line project,model_account_analytic_line,project_wbs_extension.group_project_member,1,1,1,1
+
+access_project_collaborator_leader,project.collaborator.user,project.model_project_collaborator,project_wbs_extension.group_project_leader,1,0,0,0
+access_project_collaborator_member,project.collaborator.user,project.model_project_collaborator,project_wbs_extension.group_project_member,1,0,0,0
