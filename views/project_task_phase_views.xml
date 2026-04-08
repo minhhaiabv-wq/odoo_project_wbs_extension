@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- WBS list -->
     <record id="view_project_wbs_list" model="ir.ui.view">
         <field name="name">project.wbs.list</field>
         <field name="model">project.task.phase</field>
@@ -19,6 +20,7 @@
         </field>
     </record>
 
+    <!-- WBS search -->
     <record id="view_project_wbs_search" model="ir.ui.view">
         <field name="name">project.wbs.search</field>
         <field name="model">project.task.phase</field>
@@ -40,6 +42,7 @@
         </field>
     </record>
 
+    <!-- WBS form -->
     <record id="view_project_wbs_form" model="ir.ui.view">
         <field name="name">project.wbs.form</field>
         <field name="model">project.task.phase</field>
@@ -85,16 +88,20 @@
         </field>
     </record>
 
+    <!-- WBS calendar -->
     <record id="view_project_wbs_calendar" model="ir.ui.view">
         <field name="name">project.wbs.calendar</field>
         <field name="model">project.task.phase</field>
         <field name="arch" type="xml">
-            <calendar string="WBS Calendar"
+            <calendar
                 date_start="planned_start"
                 date_stop="planned_end"
-                color="project_id"
+                string="WBS Calendar"
                 mode="month"
-                event_open_popup="true">
+                scales="month,year"
+                event_open_popup="true"
+                quick_create="0"
+                color="project_id">
                 <field name="project_id"/>
                 <field name="task_id"/>
                 <field name="phase_id"/>
@@ -104,6 +111,7 @@
         </field>
     </record>
 
+    <!-- WBS action-->
     <record id="action_project_wbs" model="ir.actions.act_window">
         <field name="name">WBS</field>
         <field name="res_model">project.task.phase</field>
@@ -116,6 +124,7 @@
         <field name="path">wbs</field>
     </record>
 
+    <!-- Add menu WBS to project -->
     <menuitem id="menu_project_wbs" name="WBS"
             parent="project.menu_main_pm"
             action="action_project_wbs"

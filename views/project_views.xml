@@ -32,8 +32,13 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project"/>
         <field name="arch" type="xml">
+            <!-- add progress in list -->
             <xpath expr="//list" position="inside">
-                <field name="progress" optional="hide"/>
+                <field name="progress" widget="project_task_progressbar" options="{'overflow_class': 'bg-danger'}" optional="hide"/>
+            </xpath>
+            <!-- add menu in popup -->
+            <xpath expr="//button[@name='action_view_tasks']" position="after">
+                <button string="View WBS" name="action_view_wbs" type="object"/>
             </xpath>
         </field>
     </record>
@@ -44,8 +49,14 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project_kanban"/>
         <field name="arch" type="xml">
+            <!-- add menu in popup -->
             <xpath expr="//a[@name='action_view_tasks']" position="after">
                 <a type="object" name="action_view_wbs">WBS</a>
+            </xpath>
+
+            <!-- add link to bottom card -->
+            <xpath expr="//field[@name='activity_ids']" position="after">
+                <a name="action_view_wbs" type="object" class="ms-2 fw-bold text-primary" title="Show WBS">WBS</a>
             </xpath>
         </field>
     </record>
