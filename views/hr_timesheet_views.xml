@@ -55,7 +55,7 @@
         <field name="inherit_id" ref="hr_timesheet.view_calendar_account_analytic_line_multi_create"/>
         <field name="arch" type="xml">
             <field name="task_id" position="after">
-                <field name="phase_id" string="Phase" options="{'no_create_edit': True, 'no_open': True}"/>
+                <field name="phase_id" string="Phase mul" options="{'no_create_edit': True, 'no_open': True}"/>
                 <field name="progress" string="Progress %"/>
                 <field name="end_flag" widget="boolean_toggle"/>
             </field>

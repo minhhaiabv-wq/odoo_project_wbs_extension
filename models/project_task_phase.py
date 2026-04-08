@@ -6,8 +6,9 @@ class ProjectTaskPhase(models.Model):
     _description = 'Task Phase (WBS)'
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
-    project_id = fields.Many2one('project.project', related='task_id.project_id', store=True)
-    task_id = fields.Many2one('project.task', required=True, ondelete='cascade', tracking=True, store=True)
+    project_id = fields.Many2one('project.project', required=True, store=True)
+    task_id = fields.Many2one('project.task', domain="[('project_id', '=', project_id)]",
+                              required=True, ondelete='cascade', tracking=True, store=True)
     phase_id = fields.Many2one('project.phase', required=True, tracking=True, store=True)
 
     # ===== Planned =====
@@ -25,7 +26,7 @@ class ProjectTaskPhase(models.Model):
     # ===== Issue =====
     issue_count = fields.Integer(string='Issue', store=True)
     progress = fields.Char(string='Progress', store=True)
-    end_flag = fields.Boolean(string='End Flag', default=False)
+    end_flag = fields.Boolean(string='End Flag', default=False, store=True)
 
     @api.depends('task_id', 'phase_id')
     def _compute_display_name(self):
@@ -33,9 +34,7 @@ class ProjectTaskPhase(models.Model):
             if not record._origin.id:
                 record.display_name = _("New")
             else:
-                task_name = record.task_id.display_name or ""
-                phase_name = record.phase_id.display_name or ""
-                record.display_name = f"{task_name} / {phase_name}" if phase_name else task_name
+                record.display_name = record.phase_id.display_name or ""
 
     @api.constrains('task_id', 'phase_id')
     def _check_unique_task_phase(self):
@@ -73,8 +72,12 @@ class ProjectTaskPhase(models.Model):
                 if end_lines:
                     end_dates = [fields.Datetime.to_datetime(d) for d in end_lines.mapped('date') if d]
                     record.actual_end = max(end_dates) if end_dates else False
+                    latest_end_line = end_lines.sorted(key=lambda t: t.date, reverse=True)[0]
+                    record.progress = latest_end_line.progress
+                    record.end_flag = True
                 else:
                     record.actual_end = False
+                    record.end_flag = False
 
                 # 3. actual_user_ids: Get list user_id unique
                 user_ids = timesheets.mapped('user_id').ids
@@ -88,3 +91,5 @@ class ProjectTaskPhase(models.Model):
                 record.actual_end = False
                 record.actual_hours = 0.0
                 record.actual_user_ids = [(5, 0, 0)]
+                record.progress = False
+                record.end_flag = False

@@ -27,4 +27,24 @@
 
         </field>
     </record>
+
+    <record id="view_task_form_timesheets_wbs" model="ir.ui.view">
+        <field name="name">project.task.form.timesheets.wbs</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="hr_timesheet.view_task_form2_inherited"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='page_timesheets']//field[@name='timesheet_ids']/list/field[@name='date']" position="after">
+                <field name="phase_id"
+                       string="Phase"
+                       options="{'no_create_edit': True, 'no_open': True}"
+                       readonly="readonly_timesheet"/>
+            </xpath>
+            <xpath expr="//page[@name='page_timesheets']//field[@name='timesheet_ids']/form//field[@name='date']" position="after">
+                <field name="phase_id"
+                       string="Phase"
+                       options="{'no_create_edit': True, 'no_open': True}"
+                       readonly="readonly_timesheet"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
