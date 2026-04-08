@@ -48,10 +48,16 @@
                 (4, ref('project_wbs_extension.group_project_member'))
             ]"/>
         </record>
+
+        <!-- Hide menu timesheets reporting -->
+        <record id="hr_timesheet.menu_timesheets_reports" model="ir.ui.menu">
+            <field name="name">Reporting</field>
+            <field name="group_ids" eval="[(6,0,[])]"/>
+        </record>
         
     </data>
 
-    <data noupdate="0">
+    <data noupdate="1">
         <record id="project.project_public_members_rule" model="ir.rule">
             <field name="active" eval="False"/>
         </record>

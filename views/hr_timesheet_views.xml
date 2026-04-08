@@ -7,9 +7,12 @@
         <field name="arch" type="xml">
             <field name="task_id" position="after">
                 <field name="phase_id"
+                    string="Phase line"
                     optional="show"
                     options="{'no_create_edit': True, 'no_open': True}"
                     readonly="readonly_timesheet"/>
+                <field name="progress" string="Progress %" optional="show"/>
+                <field name="end_flag" widget="boolean_toggle"/>
             </field>
         </field>
     </record>
@@ -21,8 +24,13 @@
         <field name="arch" type="xml">
             <field name="task_id" position="after">
                 <field name="phase_id"
+                    string="Phase form"
                     options="{'no_create_edit': True, 'no_open': True}"
                     readonly="readonly_timesheet"/>
+                <field name="progress" string="Progress %" optional="show"/>
+            </field>
+            <field name="unit_amount" position="after">
+                <field name="end_flag" widget="boolean_toggle"/>
             </field>
         </field>
     </record>
@@ -33,7 +41,7 @@
         <field name="inherit_id" ref="hr_timesheet.hr_timesheet_line_search"/>
         <field name="arch" type="xml">
             <xpath expr="//group[@name='groupby']" position="before">
-                <field name="phase_id"/>
+                <field name="phase_id" string="Phase"/>
             </xpath>
             <xpath expr="//group[@name='groupby']" position="inside">
                 <filter string="Phase" name="groupby_phase" domain="[]" context="{'group_by': 'phase_id'}"/>
@@ -47,7 +55,9 @@
         <field name="inherit_id" ref="hr_timesheet.view_calendar_account_analytic_line_multi_create"/>
         <field name="arch" type="xml">
             <field name="task_id" position="after">
-                <field name="phase_id" options="{'no_create_edit': True, 'no_open': True}"/>
+                <field name="phase_id" string="Phase" options="{'no_create_edit': True, 'no_open': True}"/>
+                <field name="progress" string="Progress %"/>
+                <field name="end_flag" widget="boolean_toggle"/>
             </field>
         </field>
     </record>

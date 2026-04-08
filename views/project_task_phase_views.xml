@@ -16,6 +16,7 @@
                 <field name="actual_end" column_invisible="1" required="actual_start"/>
                 <field name="actual_user_ids" string="Actual Member" widget="many2many_avatar_user" domain="[('share', '=', False)]"/>
                 <field name="actual_hours" widget="timesheet_uom" type="measure"/>
+                <field name="issue_count" optional="hide"/>
             </list>
         </field>
     </record>
@@ -92,6 +93,7 @@
     <record id="view_project_wbs_calendar" model="ir.ui.view">
         <field name="name">project.wbs.calendar</field>
         <field name="model">project.task.phase</field>
+        <field eval="2" name="priority"/>
         <field name="arch" type="xml">
             <calendar
                 date_start="planned_start"
@@ -100,6 +102,7 @@
                 mode="month"
                 scales="month,year"
                 event_open_popup="true"
+                js_class="project_task_calendar"
                 quick_create="0"
                 color="project_id">
                 <field name="project_id"/>
