@@ -51,7 +51,7 @@
 
         <!-- Hide menu timesheets reporting -->
         <record id="hr_timesheet.menu_timesheets_reports" model="ir.ui.menu">
-            <field name="name">Reporting</field>
+            <field name="name">Timesheets Reporting</field>
             <field name="group_ids" eval="[(6,0,[])]"/>
         </record>
         
