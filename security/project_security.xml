@@ -49,10 +49,20 @@
             ]"/>
         </record>
 
+        <!-- Hide menu project / reporting / task analysis -->
+        <record id="project.menu_project_report_task_analysis" model="ir.ui.menu">
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_no_one')])]"/>
+        </record>
+
+        <!-- Hide menu project / reporting / Customer Ratings -->
+        <record id="project.rating_rating_menu_project" model="ir.ui.menu">
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_no_one')])]"/>
+        </record>
+
         <!-- Hide menu timesheets reporting -->
         <record id="hr_timesheet.menu_timesheets_reports" model="ir.ui.menu">
-            <field name="name">Timesheets Reporting</field>
-            <field name="group_ids" eval="[(6,0,[])]"/>
+            <field name="name">Reporting</field>
+            <field name="group_ids" eval="[(6, 0, [ref('base.group_no_one')])]"/>
         </record>
         
     </data>

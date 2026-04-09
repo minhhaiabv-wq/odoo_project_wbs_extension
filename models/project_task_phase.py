@@ -28,6 +28,13 @@ class ProjectTaskPhase(models.Model):
     progress = fields.Char(string='Progress', store=True)
     end_flag = fields.Boolean(string='End Flag', default=False, store=True)
 
+    deviation = fields.Float(string='Deviation', compute='_compute_deviation', store=True)
+
+    @api.depends('planned_hours', 'actual_hours')
+    def _compute_deviation(self):
+        for record in self:
+            record.deviation = (record.actual_hours / record.planned_hours) if record.planned_hours else 0.0
+
     @api.depends('task_id', 'phase_id')
     def _compute_display_name(self):
         for record in self:
