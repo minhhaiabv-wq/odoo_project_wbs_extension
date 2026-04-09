@@ -31,11 +31,6 @@ class ProjectTaskPhase(models.Model):
 
     deviation = fields.Float(string='Deviation', compute='_compute_deviation', store=True)
 
-    @api.depends('planned_hours', 'actual_hours')
-    def _compute_deviation(self):
-        for record in self:
-            record.deviation = (record.actual_hours / record.planned_hours) if record.planned_hours else 0.0
-
     @api.depends('task_id', 'phase_id')
     def _compute_display_name(self):
         for record in self:
@@ -101,3 +96,8 @@ class ProjectTaskPhase(models.Model):
                 record.actual_user_ids = [(5, 0, 0)]
                 record.progress = False
                 record.end_flag = False
+
+    @api.depends('planned_hours', 'actual_hours')
+    def _compute_deviation(self):
+        for record in self:
+            record.deviation = (record.actual_hours / record.planned_hours) if record.planned_hours else 0.0
