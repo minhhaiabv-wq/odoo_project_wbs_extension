@@ -13,3 +13,5 @@ class ProjectTask(models.Model):
         string='Phase (WBS)',
         tracking=True
     )
+    issue_count = fields.Integer(string='Issue', store=True)
+    resolved_count = fields.Integer(string='Resolved', store=True)

@@ -5,9 +5,8 @@
         <field name="name">project.wbs.list</field>
         <field name="model">project.task.phase</field>
         <field name="arch" type="xml">
-            <list duplicate="false" class="wbs-list" expand="2" default_order="planned_start asc">
+            <list duplicate="false" class="wbs-list" expand="true" default_order="planned_start asc">
                 <field name="task_id"/>
-                <field name="phase_id"/>
                 <field name="planned_start" string="Plan Start - End" widget="daterange" options='{"end_date_field": "planned_end", "always_range": "0"}' required="planned_start or planned_end"/>
                 <field name="planned_end" column_invisible="1" required="planned_start"/>
                 <field name="planned_user_ids" string="Plan Member" widget="many2many_avatar_user" domain="[('share', '=', False)]"/>
@@ -27,14 +26,22 @@
         <field name="name">project.wbs.report.list</field>
         <field name="model">project.task.phase</field>
         <field name="arch" type="xml">
-            <list duplicate="false" create="false" delete="false" class="wbs-report-list" expand="2" default_order="planned_start asc">
+            <list 
+                duplicate="false" create="false" delete="false" 
+                class="wbs-report-list" expand="true" 
+                default_order="planned_start asc"
+                decoration-warning="deviation &gt; 0 and deviation &lt;= 0.5"
+                decoration-success="deviation &gt; 0.5 and deviation &lt;= 0.9"
+                decoration-info="deviation &gt; 0.9 and deviation &lt;= 1"
+                decoration-danger="deviation &gt; 1"
+                >
                 <field name="task_id"/>
-                <field name="phase_id"/>
                 <field name="planned_start" string="Plan Start - End" widget="daterange" options='{"end_date_field": "planned_end", "always_range": "0"}' required="planned_start or planned_end" optional="show"/>
                 <field name="planned_end" column_invisible="1" required="planned_start"/>
                 <field name="actual_start" string="Actual Start - End" widget="daterange" options='{"end_date_field": "actual_end", "always_range": "0"}' required="actual_start or actual_end" optional="show"/>
                 <field name="actual_end" column_invisible="1" required="actual_start"/>
-                <field name="end_flag" widget="boolean_toggle" readonly="true" optional="show"/>
+                <field name="end_flag" widget="boolean_button" optional="show"/>
+                <field name="issue_count" optional="show"/>
                 <field name="planned_hours" widget="timesheet_uom" type="measure"/>
                 <field name="actual_hours" widget="timesheet_uom" type="measure"/>
                 <field name="deviation" string="Percent" widget="badge"
@@ -168,7 +175,7 @@
 
     <!-- WBS action-->
     <record id="action_project_wbs_report" model="ir.actions.act_window">
-        <field name="name">WBS Performance</field>
+        <field name="name">Performance</field>
         <field name="res_model">project.task.phase</field>
         <field name="view_id" ref="view_project_wbs_report_list"/>
         <field name="view_mode">list</field>
@@ -179,7 +186,7 @@
     </record>
 
     <!-- Add menu WBS to project -->
-    <menuitem id="menu_project_wbs_report" name="WBS Performance"
+    <menuitem id="menu_project_wbs_report" name="Performance"
             parent="project.menu_project_report"
             action="action_project_wbs_report"
             sequence="1"/>

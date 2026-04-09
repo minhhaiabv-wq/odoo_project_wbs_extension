@@ -34,11 +34,13 @@
         <field name="arch" type="xml">
             <!-- add progress in list -->
             <xpath expr="//list" position="inside">
+                <field name="resolved_issue" string="Resolved/Issue" width="100px"/>
                 <field name="progress" widget="project_task_progressbar" options="{'overflow_class': 'bg-danger'}" optional="hide"/>
             </xpath>
             <!-- add menu in popup -->
             <xpath expr="//button[@name='action_view_tasks']" position="after">
                 <button string="View WBS" name="action_view_wbs" type="object"/>
+                <button string="View Performance" name="action_view_wbs_report" type="object"/>
             </xpath>
         </field>
     </record>
@@ -49,14 +51,34 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project_kanban"/>
         <field name="arch" type="xml">
-            <!-- add menu in popup -->
-            <xpath expr="//a[@name='action_view_tasks']" position="after">
-                <a type="object" name="action_view_wbs">WBS</a>
+            <!-- add link to content card -->
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <div class="d-flex align-items-baseline">
+                    <span class="fa fa-road me-2 text-muted" title="Phase"/>
+                    <field name="phase_ids"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <div class="d-flex align-items-baseline">
+                    <span class="fa fa-bug me-2 text-muted" title="View Bug"/>
+                    <field name="resolved_issue"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <div class="d-flex align-items-baseline">
+                    <span class="fa fa-bolt me-3 text-muted" title="View Performance"/>
+                    <a name="action_view_wbs_report" type="object" title="View Performance"> View Performance</a>
+                </div>
             </xpath>
 
             <!-- add link to bottom card -->
-            <xpath expr="//field[@name='activity_ids']" position="after">
-                <a name="action_view_wbs" type="object" class="ms-2 fw-bold text-primary" title="Show WBS">WBS</a>
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <div class="d-flex align-items-baseline">
+                    <span class="fa fa-table me-2 text-muted" title="View WBS"/>
+                    <a name="action_view_wbs" type="object" title="View WBS"> View WBS</a>
+                </div>
             </xpath>
         </field>
     </record>

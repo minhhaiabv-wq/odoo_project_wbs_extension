@@ -25,6 +25,7 @@ class ProjectTaskPhase(models.Model):
 
     # ===== Issue =====
     issue_count = fields.Integer(string='Issue', store=True)
+    resolved_count = fields.Integer(string='Resolved', store=True)
     progress = fields.Char(string='Progress', store=True)
     end_flag = fields.Boolean(string='End Flag', default=False, store=True)
 
