@@ -1,7 +1,7 @@
 {
     'name': 'Project WBS Extension',
     'version': '1.0',
-    'depends': ['project', 'hr_timesheet'],
+    'depends': ['project', 'hr_timesheet', 'report_xlsx'],
     'author': 'Custom',
     'category': 'Project',
     'description': 'Add Planned vs Actual fields on Project level',
@@ -15,6 +15,7 @@
         'views/hr_timesheet_views.xml',
         'views/hr_timesheet_views.xml',
         'views/report_performance_member_views.xml',
+        'views/report_action.xml',
     ],
     'assets': {
         'web.assets_backend': [
