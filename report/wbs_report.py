@@ -201,4 +201,129 @@ class WbsReport(models.AbstractModel):
                 else:
                     sheet.write(row, current_col + i, '', border_center)
             current_col += 8
+
+        self._create_schedule_overview_sheet(workbook, wbs)
+
+    def _create_schedule_overview_sheet(self, workbook, wbs):
+        sheet = workbook.add_worksheet('Overview')
+
+        # 1. Định dạng
+        header_fmt = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'border': 1, 'bg_color': '#B7DEE8', 'text_wrap': True})
+        phase_name_fmt = workbook.add_format({'bold': True, 'valign': 'vcenter', 'border': 1})
+        type_fmt = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
+        date_format = workbook.add_format({'num_format': 'yyyy-mm-dd', 'align': 'left'})
+
+        # Màu sắc cho đường thẳng
+        planned_color = '#00008B'
+        actual_color = '#FF0000'
+        empty_border = workbook.add_format({'border': 1})
+
+        sheet.write('I1', '予定')
+        # Vẽ line mẫu vào H1
+        sheet.insert_shape(0, 7, {
+            'type': 'line', 'x_offset': 5, 'y_offset': 10, 'width': 30, 'height': 0,
+            'line': {'color': planned_color, 'width': 3}
+        })
+        sheet.write('I2', '実績')
+        # Vẽ line mẫu vào H2
+        sheet.insert_shape(1, 7, {
+            'type': 'line', 'x_offset': 5, 'y_offset': 10, 'width': 30, 'height': 0,
+            'line': {'color': actual_color, 'width': 3}
+        })
+        sheet.merge_range('Q1:S1', '作成日')
+        sheet.merge_range('T1:V1', datetime.now(), date_format)
+
+        # 2. Vẽ Header (12 tháng, mỗi tháng 4 tuần)
+        sheet.write('A5', '工程', header_fmt)
+        sheet.write('B5', '予定・実績', header_fmt)
+        sheet.set_column('A:A', 20)
+
+        months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+
+        col_idx = 2
+        for month in months:
+            sheet.merge_range(4, col_idx, 4, col_idx + 3, month, header_fmt)
+            for week in range(1, 5):
+                # sheet.write(1, col_idx, f'W{week}', header_fmt)
+                sheet.set_column(col_idx, col_idx, 3) # Cột tuần để hẹp
+                col_idx += 1
+
+        # 3. Đổ dữ liệu Phase
+        # Lấy danh sách Phase duy nhất từ Project
+        project = wbs[0].project_id
+        phases_list = project.phase_ids.sorted('sequence')
+
+        row = 5
+        for phase in phases_list:
+            # Merge 2 dòng cho cột Phase Name
+            sheet.merge_range(row, 0, row + 1, 0, phase.name, phase_name_fmt)
+
+            # Dòng Planned
+            sheet.write(row, 1, '予定', type_fmt)
+            # Dòng Actual
+            sheet.write(row + 1, 1, '実績', type_fmt)
+
+            # Tính toán ngày bắt đầu và kết thúc của Phase dựa trên các Task
+            phase_data = wbs.filtered(lambda p: p.phase_id == phase)
+            if phase_data:
+                # Lấy Min/Max của Planned
+                p_starts = [d for d in phase_data.mapped('planned_start') if d]
+                p_ends = [d for d in phase_data.mapped('planned_end') if d]
+                p_start = min(p_starts) if p_starts else False
+                p_end = max(p_ends) if p_ends else False
+
+                # Lấy Min/Max của Actual
+                a_starts = [d for d in phase_data.mapped('actual_start') if d]
+                a_ends = [d for d in phase_data.mapped('actual_end') if d]
+                a_start = min(a_starts) if a_starts else False
+                a_end = max(a_ends) if a_ends else False
+
+                # Vẽ đường thẳng tiến độ bằng Shape
+                self._draw_progress_bar(sheet, row, p_start, p_end, planned_color, empty_border)
+                self._draw_progress_bar(sheet, row + 1, a_start, a_end, actual_color, empty_border)
+            else:
+                # Kẻ border trống nếu không có dữ liệu
+                for c in range(2, 50):
+                    sheet.write(row, c, '', empty_border)
+                    sheet.write(row + 1, c, '', empty_border)
+
+            row += 2
+
+    def _draw_progress_bar(self, sheet, row, start_date, end_date, color, border_fmt):
+        """Hàm phụ trợ để vẽ đường thẳng bằng Shape, thể hiện chính xác theo ngày"""
+        # Kẻ border cho toàn bộ 48 tuần trước (giữ lưới)
+        for c in range(2, 50):
+            sheet.write(row, c, '', border_fmt)
+
+        if not start_date or not end_date:
+            return
+
+        # Tính toán pixel (Giả định mỗi cột rộng 3 ~ 26 pixels)
+        col_width_px = 26
+        month_width_px = 4 * col_width_px
+        
+        def get_x_offset(d):
+            month_idx = d.month - 1
+            # Tỷ lệ ngày trong tháng (tính tương đối 30 ngày)
+            day_ratio = min((d.day - 1) / 30.0, 1.0)
+            return int(month_idx * month_width_px + day_ratio * month_width_px)
+
+        start_x = get_x_offset(start_date)
+        end_x = get_x_offset(end_date)
+        
+        if end_x <= start_x:
+            end_x = start_x + 5 # Độ dài tối thiểu để thấy được line
+
+        # Chèn Shape đường thẳng
+        sheet.insert_shape(row, 2, {
+            'type': 'line',
+            'x_offset': start_x,
+            'y_offset': 12, # Căn giữa dòng
+            'width': end_x - start_x,
+            'height': 0,
+            'line': {
+                'color': color,
+                'width': 2.5,
+            }
+        })
     # end
