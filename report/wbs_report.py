@@ -1,5 +1,5 @@
-from odoo import models
-from datetime import datetime, timedelta
+from odoo import models, fields
+from datetime import datetime
 import logging
 import io
 import base64
@@ -215,11 +215,11 @@ class WbsReport(models.AbstractModel):
         type_fmt = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
         date_format = workbook.add_format({'num_format': 'yyyy-mm-dd', 'align': 'left'})
 
-        # Dữ liệu ảnh 1x1 pixel để giả lập đường thẳng (vì một số môi trường không hỗ trợ insert_shape)
-        # Blue #00008B
-        planned_img_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4z8DwHwAFAAH/V9V9GgAAAABJRU5ErkJggg==')
-        # Red #FF0000
-        actual_img_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAChgEAsS896AAAAABJRU5ErkJggg==')
+        # Dữ liệu ảnh 1x1 pixel để giả lập đường thẳng
+        # Blue #0000FF (Planned)
+        planned_img_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQwp8GAAAADklEQVR42mNk+M8ABwAFAAIAD198AAAAAElFTkSuQmCC')
+        # Red #FF0000 (Actual)
+        actual_img_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQwp8GAAAADklEQVR42mP8z8AAAgEBAAABO6OaAAAAAElFTkSuQmCC')
         
         empty_border = workbook.add_format({'border': 1})
 
@@ -227,13 +227,13 @@ class WbsReport(models.AbstractModel):
         # Vẽ line mẫu vào H1 bằng ảnh 1x1 scale
         sheet.insert_image(0, 7, 'p_legend.png', {
             'image_data': io.BytesIO(planned_img_data),
-            'x_offset': 5, 'y_offset': 10, 'x_scale': 30, 'y_scale': 3
+            'x_offset': 0, 'y_offset': 6, 'x_scale': 25, 'y_scale': 5
         })
         sheet.write('I2', '実績')
         # Vẽ line mẫu vào H2 bằng ảnh 1x1 scale
         sheet.insert_image(1, 7, 'a_legend.png', {
             'image_data': io.BytesIO(actual_img_data),
-            'x_offset': 5, 'y_offset': 10, 'x_scale': 30, 'y_scale': 3
+            'x_offset': 0, 'y_offset': 6, 'x_scale': 25, 'y_scale': 5
         })
         sheet.merge_range('Q1:S1', '作成日')
         sheet.merge_range('T1:V1', datetime.now(), date_format)
@@ -280,12 +280,30 @@ class WbsReport(models.AbstractModel):
                 # Lấy Min/Max của Actual
                 a_starts = [d for d in phase_data.mapped('actual_start') if d]
                 a_ends = [d for d in phase_data.mapped('actual_end') if d]
+                
+                # Nếu chưa có actual_start thì không vẽ đường actual
                 a_start = min(a_starts) if a_starts else False
-                a_end = max(a_ends) if a_ends else False
+                
+                # Logic cho a_end:
+                # 1. Lấy max(a_ends) nếu có
+                # 2. Nếu chưa có task nào kết thúc nhưng đã có task bắt đầu, lấy ngày hiện tại
+                # 3. Không được vượt quá ngày kết thúc của project (project.date)
+                a_end = False
+                if a_start:
+                    a_end = max(a_ends) if a_ends else datetime.now()
+                    
+                    # Lấy project từ wbs nếu biến project chưa được truyền vào hoặc bị mất
+                    proj_rec = wbs[0].project_id
+                    project_end_date = proj_rec.date
+                    if project_end_date:
+                        # Chuyển Date thành Datetime để so sánh
+                        project_end_dt = datetime.combine(project_end_date, datetime.max.time())
+                        if a_end > project_end_dt:
+                            a_end = project_end_dt
 
                 # Vẽ đường thẳng tiến độ bằng Ảnh 1x1 scale
-                self._draw_progress_bar(sheet, row, p_start, p_end, planned_img_data, empty_border)
-                self._draw_progress_bar(sheet, row + 1, a_start, a_end, actual_img_data, empty_border)
+                self._draw_progress_bar(sheet, row, p_start, p_end, planned_img_data, empty_border, 'p_%s.png' % row)
+                self._draw_progress_bar(sheet, row + 1, a_start, a_end, actual_img_data, empty_border, 'a_%s.png' % row)
             else:
                 # Kẻ border trống nếu không có dữ liệu
                 for c in range(2, 50):
@@ -294,7 +312,7 @@ class WbsReport(models.AbstractModel):
 
             row += 2
 
-    def _draw_progress_bar(self, sheet, row, start_date, end_date, img_data, border_fmt):
+    def _draw_progress_bar(self, sheet, row, start_date, end_date, img_data, border_fmt, img_name='line.png'):
         """Hàm phụ trợ để vẽ đường thẳng bằng Ảnh 1x1 scale (thay thế cho Shape)"""
         # Kẻ border cho toàn bộ 48 tuần trước (giữ lưới)
         for c in range(2, 50):
@@ -302,6 +320,12 @@ class WbsReport(models.AbstractModel):
 
         if not start_date or not end_date:
             return
+
+        # Đảm bảo start_date và end_date là kiểu datetime/date
+        if isinstance(start_date, str):
+            start_date = fields.Datetime.to_datetime(start_date)
+        if isinstance(end_date, str):
+            end_date = fields.Datetime.to_datetime(end_date)
 
         # Tính toán pixel (Giả định mỗi cột rộng 3 ~ 26 pixels)
         col_width_px = 26
@@ -319,14 +343,13 @@ class WbsReport(models.AbstractModel):
         width_px = end_x - start_x
         if width_px <= 0:
             width_px = 5 # Độ dài tối thiểu
-
         # Chèn ảnh 1x1 pixel và scale chiều rộng để tạo thành đường thẳng
-        sheet.insert_image(row, 2, 'line.png', {
+        sheet.insert_image(row, 2, img_name, {
             'image_data': io.BytesIO(img_data),
             'x_offset': start_x,
-            'y_offset': 12, # Căn giữa dòng
+            'y_offset': 10, # Căn giữa dòng
             'x_scale': width_px,
-            'y_scale': 2.5, # Độ dày của đường thẳng
-            'object_position': 1 # Move but don't size with cells
+            'y_scale': 6, # Độ dày của đường thẳng
+            'object_position': 1 
         })
     # end
