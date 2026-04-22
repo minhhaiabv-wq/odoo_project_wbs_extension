@@ -13,8 +13,8 @@
         'views/project_task_views.xml',
         'views/project_views.xml',
         'views/hr_timesheet_views.xml',
-        'views/hr_timesheet_views.xml',
         'views/report_performance_member_views.xml',
+        'views/report_member_workload_views.xml',
         'views/report_action.xml',
     ],
     'assets': {

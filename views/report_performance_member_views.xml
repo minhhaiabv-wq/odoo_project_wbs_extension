@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- list -->
     <record id="view_report_performance_member_list" model="ir.ui.view">
         <field name="name">member.performance.report.list</field>
         <field name="model">report.performance.member</field>
@@ -15,6 +16,30 @@
                     decoration-warning="performance_ratio &gt; 0.6 and performance_ratio &lt;= 1"
                     decoration-danger="performance_ratio &gt; 1"/>
             </list>
+        </field>
+    </record>
+
+    <!-- calendar -->
+    <record id="view_report_performance_member_calendar" model="ir.ui.view">
+        <field name="name">member.performance.report.calendar</field>
+        <field name="model">report.performance.member</field>
+        <field eval="2" name="priority"/>
+        <field name="arch" type="xml">
+            <calendar
+                date_start="planned_start"
+                date_stop="planned_end"
+                string="Member Task Calendar"
+                mode="month"
+                scales="month,year"
+                event_open_popup="true"
+                js_class="project_task_calendar"
+                quick_create="0"
+                color="project_id">
+                <field name="project_id"/>
+                <field name="user_id" filters="1"/>
+                <field name="task_id"/>
+                <field name="phase_id"/>
+            </calendar>
         </field>
     </record>
 
@@ -34,15 +59,4 @@
             parent="project.menu_project_report"
             action="action_member_performance_report"
             sequence="2"/>
-
-    <!-- <record id="action_member_performance_report_virtual" model="ir.actions.server">
-        <field name="name">Member Performance Virtual</field>
-        <field name="model_id" ref="base.model_res_users"/>
-        <field name="state">code</field>
-        <field name="code">action = env['report.performance.member'].action_generate_report()</field>
-    </record>
-    <menuitem id="menu_report_performance_member_virtual" name="Member Performance Virtual"
-            parent="project.menu_project_report"
-            action="action_member_performance_report_virtual"
-            sequence="3"/> -->
 </odoo>

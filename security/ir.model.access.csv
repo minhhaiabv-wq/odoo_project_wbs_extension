@@ -31,3 +31,6 @@ access_project_collaborator_member,project.collaborator.user,project.model_proje
 
 access_report_performance_manager,report.performance.member,model_report_performance_member,project.group_project_manager,1,1,1,1
 access_report_performance_leader,report.performance.member,model_report_performance_member,project_wbs_extension.group_project_leader,1,1,1,1
+
+access_report_member_workload_manager,report.member.workload,model_report_member_workload,project.group_project_manager,1,1,1,1
+access_report_member_workload_leader,report.member.workload,model_report_member_workload,project_wbs_extension.group_project_leader,1,1,1,1
