@@ -1,6 +1,8 @@
 from odoo import models
 from datetime import datetime, timedelta
 import logging
+import io
+import base64
 _logger = logging.getLogger(__name__)
 
 class WbsReport(models.AbstractModel):
@@ -213,22 +215,25 @@ class WbsReport(models.AbstractModel):
         type_fmt = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
         date_format = workbook.add_format({'num_format': 'yyyy-mm-dd', 'align': 'left'})
 
-        # Màu sắc cho đường thẳng
-        planned_color = '#00008B'
-        actual_color = '#FF0000'
+        # Dữ liệu ảnh 1x1 pixel để giả lập đường thẳng (vì một số môi trường không hỗ trợ insert_shape)
+        # Blue #00008B
+        planned_img_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4z8DwHwAFAAH/V9V9GgAAAABJRU5ErkJggg==')
+        # Red #FF0000
+        actual_img_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAChgEAsS896AAAAABJRU5ErkJggg==')
+        
         empty_border = workbook.add_format({'border': 1})
 
         sheet.write('I1', '予定')
-        # Vẽ line mẫu vào H1
-        sheet.insert_shape(0, 7, {
-            'type': 'line', 'x_offset': 5, 'y_offset': 10, 'width': 30, 'height': 0,
-            'line': {'color': planned_color, 'width': 3}
+        # Vẽ line mẫu vào H1 bằng ảnh 1x1 scale
+        sheet.insert_image(0, 7, 'p_legend.png', {
+            'image_data': io.BytesIO(planned_img_data),
+            'x_offset': 5, 'y_offset': 10, 'x_scale': 30, 'y_scale': 3
         })
         sheet.write('I2', '実績')
-        # Vẽ line mẫu vào H2
-        sheet.insert_shape(1, 7, {
-            'type': 'line', 'x_offset': 5, 'y_offset': 10, 'width': 30, 'height': 0,
-            'line': {'color': actual_color, 'width': 3}
+        # Vẽ line mẫu vào H2 bằng ảnh 1x1 scale
+        sheet.insert_image(1, 7, 'a_legend.png', {
+            'image_data': io.BytesIO(actual_img_data),
+            'x_offset': 5, 'y_offset': 10, 'x_scale': 30, 'y_scale': 3
         })
         sheet.merge_range('Q1:S1', '作成日')
         sheet.merge_range('T1:V1', datetime.now(), date_format)
@@ -278,9 +283,9 @@ class WbsReport(models.AbstractModel):
                 a_start = min(a_starts) if a_starts else False
                 a_end = max(a_ends) if a_ends else False
 
-                # Vẽ đường thẳng tiến độ bằng Shape
-                self._draw_progress_bar(sheet, row, p_start, p_end, planned_color, empty_border)
-                self._draw_progress_bar(sheet, row + 1, a_start, a_end, actual_color, empty_border)
+                # Vẽ đường thẳng tiến độ bằng Ảnh 1x1 scale
+                self._draw_progress_bar(sheet, row, p_start, p_end, planned_img_data, empty_border)
+                self._draw_progress_bar(sheet, row + 1, a_start, a_end, actual_img_data, empty_border)
             else:
                 # Kẻ border trống nếu không có dữ liệu
                 for c in range(2, 50):
@@ -289,8 +294,8 @@ class WbsReport(models.AbstractModel):
 
             row += 2
 
-    def _draw_progress_bar(self, sheet, row, start_date, end_date, color, border_fmt):
-        """Hàm phụ trợ để vẽ đường thẳng bằng Shape, thể hiện chính xác theo ngày"""
+    def _draw_progress_bar(self, sheet, row, start_date, end_date, img_data, border_fmt):
+        """Hàm phụ trợ để vẽ đường thẳng bằng Ảnh 1x1 scale (thay thế cho Shape)"""
         # Kẻ border cho toàn bộ 48 tuần trước (giữ lưới)
         for c in range(2, 50):
             sheet.write(row, c, '', border_fmt)
@@ -311,19 +316,17 @@ class WbsReport(models.AbstractModel):
         start_x = get_x_offset(start_date)
         end_x = get_x_offset(end_date)
         
-        if end_x <= start_x:
-            end_x = start_x + 5 # Độ dài tối thiểu để thấy được line
+        width_px = end_x - start_x
+        if width_px <= 0:
+            width_px = 5 # Độ dài tối thiểu
 
-        # Chèn Shape đường thẳng
-        sheet.insert_shape(row, 2, {
-            'type': 'line',
+        # Chèn ảnh 1x1 pixel và scale chiều rộng để tạo thành đường thẳng
+        sheet.insert_image(row, 2, 'line.png', {
+            'image_data': io.BytesIO(img_data),
             'x_offset': start_x,
             'y_offset': 12, # Căn giữa dòng
-            'width': end_x - start_x,
-            'height': 0,
-            'line': {
-                'color': color,
-                'width': 2.5,
-            }
+            'x_scale': width_px,
+            'y_scale': 2.5, # Độ dày của đường thẳng
+            'object_position': 1 # Move but don't size with cells
         })
     # end
