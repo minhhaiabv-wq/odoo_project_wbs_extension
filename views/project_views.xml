@@ -9,6 +9,15 @@
             <xpath expr="//field[@name='tag_ids']" position="after">
                 <field name="phase_ids" widget="many2many_tags"/>
             </xpath>
+            
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_issues" type="object" class="oe_stat_button" icon="fa-bug">
+                    <field name="issue_count" widget="statinfo" string="Issues"/>
+                </button>
+                <button name="action_view_reviews" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                    <field name="review_count" widget="statinfo" string="Reviews"/>
+                </button>
+            </xpath>
 
             <xpath expr="//sheet/group" position="after">
                 <group col="2">
@@ -53,31 +62,34 @@
         <field name="arch" type="xml">
             <!-- add link to content card -->
             <xpath expr="//field[@name='tag_ids']" position="after">
+                <!-- show phase in card -->
                 <div class="d-flex align-items-baseline">
                     <span class="fa fa-road me-2 text-muted" title="Phase"/>
                     <field name="phase_ids"/>
                 </div>
-            </xpath>
-
-            <xpath expr="//field[@name='tag_ids']" position="after">
+                <!-- show WBS link in card -->
                 <div class="d-flex align-items-baseline">
-                    <span class="fa fa-bug me-2 text-muted" title="View Bug"/>
-                    <field name="resolved_issue"/>
+                    <span class="fa fa-table me-2 text-muted" title="View WBS"/>
+                    <a name="action_view_wbs" type="object" title="View WBS"> View WBS</a>
                 </div>
-            </xpath>
-
-            <xpath expr="//field[@name='tag_ids']" position="after">
+                <!-- show performance link in card -->
                 <div class="d-flex align-items-baseline">
                     <span class="fa fa-bolt me-3 text-muted" title="View Performance"/>
                     <a name="action_view_wbs_report" type="object" title="View Performance"> View Performance</a>
                 </div>
-            </xpath>
-
-            <!-- add link to bottom card -->
-            <xpath expr="//field[@name='tag_ids']" position="after">
+                <!-- show reviews link in card -->
                 <div class="d-flex align-items-baseline">
-                    <span class="fa fa-table me-2 text-muted" title="View WBS"/>
-                    <a name="action_view_wbs" type="object" title="View WBS"> View WBS</a>
+                    <span class="fa fa-check-square-o me-2 text-muted" title="View Reviews"/>
+                    <a name="action_view_reviews" type="object" title="View Reviews">
+                        <field name="review_status"/>
+                    </a>
+                </div>
+                <!-- show issues link in card -->
+                <div class="d-flex align-items-baseline">
+                    <span class="fa fa-bug me-2 text-muted" title="View Issues"/>
+                    <a name="action_view_issues" type="object" title="View Issues">
+                        <field name="resolved_issue"/>
+                    </a>
                 </div>
             </xpath>
         </field>

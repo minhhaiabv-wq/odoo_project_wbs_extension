@@ -60,6 +60,8 @@
         <field name="model">project.task.phase</field>
         <field name="arch" type="xml">
             <search string="Search WBS">
+                <field name="project_id"/>
+                <field name="task_id"/>
                 <filter string="PS" name="filter_phase_ps" domain="[('phase_id.display_name', '=', 'PS')]"/>
                 <filter string="PG" name="filter_phase_ps" domain="[('phase_id.display_name', '=', 'PG')]"/>
                 <filter string="PT" name="filter_phase_ps" domain="[('phase_id.display_name', '=', 'PT')]"/>
@@ -86,12 +88,13 @@
                     <div class="oe_title">
                         <label for="project_id" string="Project"/>
                         <h1 class="d-flex flex-row">
-                            <field name="project_id" options="{'line_breaks': False}" class="o_text_overflow" placeholder="Project name ..."/>
+                            <field name="project_id" domain="[('is_template', '=', False)]" options="{'line_breaks': False}" class="o_text_overflow" placeholder="Project name ..."/>
+                            <field name="project_phase_ids" invisible="1"/>
                         </h1>
                     </div>
                     <group>
-                        <field name="task_id" colspan="2"/>
-                        <field name="phase_id"/>
+                        <field name="task_id" domain="[('project_id', '=', project_id)]" colspan="2"/>
+                        <field name="phase_id" domain="[('id', 'in', project_phase_ids)]"/>
                     </group>
                     <group>
                         <group>

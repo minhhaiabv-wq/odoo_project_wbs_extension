@@ -6,10 +6,11 @@ class ProjectTaskPhase(models.Model):
     _description = 'Task Phase (WBS)'
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
-    project_id = fields.Many2one('project.project', required=True, store=True)
-    task_id = fields.Many2one('project.task', domain="[('project_id', '=', project_id)]",
+    project_id = fields.Many2one('project.project', string='Project', required=True, tracking=True, store=True)
+    task_id = fields.Many2one('project.task', string='Task',
                               required=True, ondelete='cascade', tracking=True, store=True)
-    phase_id = fields.Many2one('project.phase', required=True, tracking=True, store=True)
+    phase_id = fields.Many2one('project.phase', string='Phase', required=True, tracking=True, store=True)
+    project_phase_ids = fields.Many2many('project.phase', related='project_id.phase_ids')
 
     # ===== Planned =====
     planned_start = fields.Datetime(string='Planned Start', tracking=True, store=True)
@@ -24,10 +25,73 @@ class ProjectTaskPhase(models.Model):
     actual_hours = fields.Float(string='Actual Hours', compute="_compute_actual_data", tracking=True, store=True)
 
     # ===== Issue =====
-    issue_count = fields.Integer(string='Issue', store=True)
-    resolved_count = fields.Integer(string='Resolved', store=True)
+    issue_count = fields.Integer(string='Issue', compute='_compute_bug_count', store=True)
+    resolved_count = fields.Integer(string='Resolved', compute='_compute_bug_count', store=True)
     progress = fields.Char(string='Progress', store=True)
     end_flag = fields.Boolean(string='End Flag', default=False, store=True)
+
+    # bug_count is removed in favor of issue_count
+    review_count = fields.Integer(string='Review Count', compute='_compute_review_count', store=True)
+
+    @api.depends('task_id', 'phase_id')
+    def _compute_bug_count(self):
+        for record in self:
+            issues = self.env['project.issue'].search([
+                ('task_id', '=', record.task_id.id),
+                ('phase_id', '=', record.phase_id.id)
+            ])
+            record.issue_count = len(issues)
+            record.resolved_count = len(issues.filtered(lambda b: b.state in ('resolved', 'closed')))
+
+    @api.onchange('project_id')
+    def _onchange_project_id(self):
+        if self.project_id:
+            if self.task_id and self.task_id.project_id != self.project_id:
+                self.task_id = False
+            self.phase_id = False
+
+    @api.onchange('task_id')
+    def _onchange_task_id(self):
+        if self.task_id:
+            self.project_id = self.task_id.project_id
+
+    @api.depends('task_id', 'phase_id')
+    def _compute_review_count(self):
+        for record in self:
+            record.review_count = self.env['project.review'].search_count([
+                ('task_id', '=', record.task_id.id),
+                ('phase_id', '=', record.phase_id.id)
+            ])
+
+    def action_view_issues(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Issues',
+            'res_model': 'project.issue',
+            'view_mode': 'list,form',
+            'domain': [('task_id', '=', self.task_id.id), ('phase_id', '=', self.phase_id.id)],
+            'context': {
+                'default_project_id': self.project_id.id,
+                'default_task_id': self.task_id.id,
+                'default_phase_id': self.phase_id.id,
+            },
+        }
+
+    def action_view_reviews(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Reviews',
+            'res_model': 'project.review',
+            'view_mode': 'list,form',
+            'domain': [('task_id', '=', self.task_id.id), ('phase_id', '=', self.phase_id.id)],
+            'context': {
+                'default_project_id': self.project_id.id,
+                'default_task_id': self.task_id.id,
+                'default_phase_id': self.phase_id.id,
+            },
+        }
 
     deviation = fields.Float(string='Deviation', compute='_compute_deviation', store=True)
 
