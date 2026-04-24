@@ -13,9 +13,9 @@
                 edit="0"
                 delete="0"
                 quick_create="0">
-                <field name="user_id" avatar_field="image_128" filters="1"/>
+                <field name="project_id" filters="1"/>
                 <field name="state" filters="1"/>
-                <field name="project_id"/>
+                <field name="user_id" avatar_field="image_128" filters="1"/>
                 <field name="task_id"/>
                 <field name="phase_id"/>
             </calendar>
@@ -33,6 +33,25 @@
                 <field name="task_id"/>
                 <field name="state" widget="badge" decoration-success="state == 'busy'" decoration-danger="state == 'free'"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_report_member_workload_search" model="ir.ui.view">
+        <field name="name">report.member.workload.search</field>
+        <field name="model">report.member.workload</field>
+        <field name="arch" type="xml">
+            <search string="Search Workload">
+                <field name="user_id"/>
+                <field name="project_id"/>
+                <field name="task_id"/>
+                <filter string="Available" name="free" domain="[('state', '=', 'free')]"/>
+                <filter string="Assigned" name="busy" domain="[('state', '=', 'busy')]"/>
+                <group>
+                    <filter string="Member" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Project" name="group_by_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
         </field>
     </record>
 

@@ -13,8 +13,8 @@ class ProjectIssue(models.Model):
     project_phase_ids = fields.Many2many('project.phase', related='project_id.phase_ids')
     project_member_ids = fields.Many2many('res.users', related='project_id.member_ids')
     
-    reported_by = fields.Many2one('res.users', string='Reported By', default=lambda self: self.env.user, tracking=True)
-    assigned_to = fields.Many2one('res.users', string='Assigned To', tracking=True)
+    reported_by = fields.Many2one('res.users', string='Reported By', default=lambda self: self.env.user, tracking=True, domain="[('id', 'in', project_member_ids), ('share', '=', False)]")
+    assigned_to = fields.Many2one('res.users', string='Assigned To', tracking=True, domain="[('id', 'in', project_member_ids), ('share', '=', False)]")
     
     priority = fields.Selection([
         ('0', 'Low'),

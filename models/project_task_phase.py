@@ -15,7 +15,17 @@ class ProjectTaskPhase(models.Model):
     # ===== Planned =====
     planned_start = fields.Datetime(string='Planned Start', tracking=True, store=True)
     planned_end = fields.Datetime(string='Planned End', tracking=True, store=True)
-    planned_user_ids = fields.Many2many('res.users', relation='task_phase_planned_user_rel', column1='task_phase_id', column2='user_id', string='Planned Members', tracking=True, store=True)
+    project_member_ids = fields.Many2many('res.users', related='project_id.member_ids')
+    planned_user_ids = fields.Many2many(
+        'res.users', 
+        relation='task_phase_planned_user_rel', 
+        column1='task_phase_id', 
+        column2='user_id', 
+        string='Planned Members', 
+        tracking=True, 
+        store=True,
+        domain="[('id', 'in', project_member_ids), ('share', '=', False)]"
+    )
     planned_hours = fields.Float(string='Planned Hours', tracking=True, store=True)
 
     # ===== Actual =====
@@ -27,8 +37,8 @@ class ProjectTaskPhase(models.Model):
     # ===== Issue =====
     issue_count = fields.Integer(string='Issue', compute='_compute_bug_count', store=True)
     resolved_count = fields.Integer(string='Resolved', compute='_compute_bug_count', store=True)
-    progress = fields.Char(string='Progress', store=True)
-    end_flag = fields.Boolean(string='End Flag', default=False, store=True)
+    progress = fields.Integer(string='Progress', compute="_compute_actual_data", store=True)
+    end_flag = fields.Boolean(string='End Flag', compute="_compute_actual_data", store=True)
 
     # bug_count is removed in favor of issue_count
     review_count = fields.Integer(string='Review Count', compute='_compute_review_count', store=True)
@@ -122,6 +132,7 @@ class ProjectTaskPhase(models.Model):
         'task_id.timesheet_ids.user_id',
         'task_id.timesheet_ids.end_flag',
         'task_id.timesheet_ids.phase_id',
+        'task_id.timesheet_ids.progress',
     )
     def _compute_actual_data(self):
         for record in self:
@@ -139,12 +150,14 @@ class ProjectTaskPhase(models.Model):
                 if end_lines:
                     end_dates = [fields.Datetime.to_datetime(d) for d in end_lines.mapped('date') if d]
                     record.actual_end = max(end_dates) if end_dates else False
-                    latest_end_line = end_lines.sorted(key=lambda t: t.date, reverse=True)[0]
-                    record.progress = latest_end_line.progress
                     record.end_flag = True
                 else:
                     record.actual_end = False
                     record.end_flag = False
+
+                # 2.1 progress: get from the latest timesheet line
+                latest_line = timesheets.sorted(key=lambda t: t.date or fields.Date.today(), reverse=True)
+                record.progress = latest_line[0].progress if latest_line else False
 
                 # 3. actual_user_ids: Get list user_id unique
                 user_ids = timesheets.mapped('user_id').ids

@@ -2,6 +2,9 @@ from odoo import models, fields, api
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
+    
+    user_ids = fields.Many2many('res.users', domain="[('id', 'in', project_member_ids), ('share', '=', False)]")
+    project_member_ids = fields.Many2many('res.users', related='project_id.member_ids')
 
     date_start = fields.Date(string='Start Date')
     date_end = fields.Date(string='End Date')

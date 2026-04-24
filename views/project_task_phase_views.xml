@@ -9,15 +9,14 @@
                 <field name="task_id"/>
                 <field name="planned_start" string="Plan Start - End" widget="daterange" options='{"end_date_field": "planned_end", "always_range": "0"}' required="planned_start or planned_end"/>
                 <field name="planned_end" column_invisible="1" required="planned_start"/>
-                <field name="planned_user_ids" string="Plan Member" widget="many2many_avatar_user" domain="[('share', '=', False)]"/>
+                <field name="planned_user_ids" string="Plan Member" widget="many2many_avatar_user" domain="[('id', 'in', project_member_ids), ('share', '=', False)]"/>
                 <field name="planned_hours" widget="timesheet_uom" type="measure"/>
                 <field name="actual_start" string="Actual Start - End" widget="daterange" options='{"end_date_field": "actual_end", "always_range": "0"}' required="actual_start or actual_end" readonly="1"/>
                 <field name="actual_end" column_invisible="1" required="actual_start" readonly="1"/>
-                <field name="actual_user_ids" string="Actual Member" widget="many2many_avatar_user" domain="[('share', '=', False)]" readonly="1"/>
+                <field name="actual_user_ids" string="Actual Member" widget="many2many_avatar_user" domain="[('id', 'in', project_member_ids), ('share', '=', False)]" readonly="1"/>
                 <field name="actual_hours" widget="timesheet_uom" readonly="1" type="measure"/>
-                <field name="progress" readonly="1" optional="hide"/>
+                <field name="progress" widget="progressbar" options="{'current_value': 'progress', 'max_value': '100','editable': false}" readonly="1" optional="hide"/>
                 <field name="end_flag" widget="boolean_toggle" readonly="1" optional="hide"/>
-                <field name="issue_count" readonly="1" optional="hide"/>
             </list>
         </field>
     </record>
@@ -98,8 +97,7 @@
                     </group>
                     <group>
                         <group>
-                            <field name="progress" readonly="1" optional="hide"/>
-                            <field name="issue_count" readonly="1" optional="hide"/>
+                            <field name="progress" widget="progressbar" options="{'current_value': 'progress', 'max_value': '100','editable': false}" readonly="1" optional="hide"/>
                         </group>
                         <group>
                             <field name="end_flag" widget="boolean_toggle" readonly="1" optional="hide"/>
@@ -112,13 +110,13 @@
                                 <group>
                                     <field name="planned_start" string="Plan Start - End" widget="daterange" options='{"end_date_field": "planned_end", "always_range": "1"}' required="planned_start or planned_end"/>
                                     <field name="planned_end" invisible="1" required="planned_start"/>
-                                    <field name="planned_user_ids" string="Plan Members" widget="many2many_avatar_user" domain="[('share', '=', False)]"/>
+                                    <field name="planned_user_ids" string="Plan Members" widget="many2many_avatar_user" domain="[('id', 'in', project_member_ids), ('share', '=', False)]"/>
                                     <field name="planned_hours" widget="timesheet_uom" type="measure"/>
                                 </group>
                                 <group>
                                     <field name="actual_start" string="Actual Start - End" widget="daterange" options='{"end_date_field": "actual_end", "always_range": "1"}' required="actual_start or actual_end"/>
                                     <field name="actual_end" invisible="1" required="actual_start"/>
-                                    <field name="actual_user_ids" string="Actual Members" widget="many2many_avatar_user" domain="[('share', '=', False)]"/>
+                                    <field name="actual_user_ids" string="Actual Members" widget="many2many_avatar_user" domain="[('id', 'in', project_member_ids), ('share', '=', False)]"/>
                                     <field name="actual_hours" widget="timesheet_uom" type="measure"/>
                                 </group>
                             </group>

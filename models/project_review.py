@@ -13,8 +13,8 @@ class ProjectReview(models.Model):
     project_phase_ids = fields.Many2many('project.phase', related='project_id.phase_ids')
     project_member_ids = fields.Many2many('res.users', related='project_id.member_ids')
     
-    reviewer_id = fields.Many2one('res.users', string='Reviewer', default=lambda self: self.env.user, tracking=True)
-    assigned_to = fields.Many2one('res.users', string='Assigned To', tracking=True)
+    reviewer_id = fields.Many2one('res.users', string='Reviewer', default=lambda self: self.env.user, tracking=True, domain="[('id', 'in', project_member_ids), ('share', '=', False)]")
+    assigned_to = fields.Many2one('res.users', string='Assigned To', tracking=True, domain="[('id', 'in', project_member_ids), ('share', '=', False)]")
     date = fields.Date(string='Review Date', default=fields.Date.today)
     
     state = fields.Selection([

@@ -31,8 +31,9 @@
                 </header>
                 <sheet>
                     <div class="oe_title">
+                        <label for="name" string="Review Title"/>
                         <h1>
-                            <field name="name" placeholder="Review Title..."/>
+                            <field class="text-break" name="name" options="{'line_breaks': False}" widget="text" placeholder="Review Title..."/>
                         </h1>
                     </div>
                     <group>

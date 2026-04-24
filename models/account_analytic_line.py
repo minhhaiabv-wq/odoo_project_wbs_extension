@@ -9,7 +9,7 @@ class AccountAnalyticLine(models.Model):
         required=True,
         domain="[('project_id', '=', project_id), ('task_id', '=', task_id)]",
     )
-    progress = fields.Char(string='Progress', store=True)
+    progress = fields.Integer(string='Progress', store=True)
     end_flag = fields.Boolean(string='End Flag', default=False)
 
     @api.onchange('project_id', 'task_id')

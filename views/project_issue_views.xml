@@ -5,12 +5,12 @@
         <field name="model">project.issue</field>
         <field name="arch" type="xml">
             <list string="Issues" decoration-danger="priority == '3'" decoration-warning="priority == '2'" decoration-muted="state == 'closed'">
+                <field name="priority" widget="priority"/>
                 <field name="name"/>
                 <field name="project_id"/>
                 <field name="task_id"/>
                 <field name="phase_id"/>
                 <field name="assigned_to"/>
-                <field name="priority" widget="priority"/>
                 <field name="state" widget="badge" decoration-info="state == 'open'" decoration-success="state == 'resolved'"/>
                 <field name="date_reported"/>
             </list>
@@ -33,8 +33,12 @@
                 </header>
                 <sheet>
                     <div class="oe_title">
+                        <label for="name" string="Issue Title"/>
                         <h1>
-                            <field name="name" placeholder="Issue Title..."/>
+                            <div class="d-flex">
+                                <field name="priority" widget="priority" class="me-2" nolabel="1"/>
+                                <field class="text-break" name="name" options="{'line_breaks': False}" widget="text" placeholder="Issue Title..."/>
+                            </div>
                         </h1>
                     </div>
                     <group>
@@ -43,7 +47,6 @@
                             <field name="project_phase_ids" invisible="1"/>
                             <field name="task_id" domain="[('project_id', '=', project_id)]"/>
                             <field name="phase_id" domain="[('id', 'in', project_phase_ids)]"/>
-                            <field name="priority" widget="priority"/>
                         </group>
                         <group>
                             <field name="project_member_ids" invisible="1"/>
