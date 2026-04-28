@@ -4,10 +4,9 @@
         <field name="name">project.issue.tree</field>
         <field name="model">project.issue</field>
         <field name="arch" type="xml">
-            <list string="Issues" decoration-danger="priority == '3'" decoration-warning="priority == '2'" decoration-muted="state == 'closed'">
+            <list string="Issues" expand="true" decoration-danger="priority == '3'" decoration-warning="priority == '2'" decoration-muted="state == 'closed'">
                 <field name="priority" widget="priority"/>
                 <field name="name"/>
-                <field name="project_id"/>
                 <field name="task_id"/>
                 <field name="phase_id"/>
                 <field name="assigned_to"/>
@@ -88,7 +87,7 @@
                     <filter string="Project" name="group_by_project" context="{'group_by': 'project_id'}"/>
                     <filter string="Task" name="group_by_task" context="{'group_by': 'task_id'}"/>
                     <filter string="Phase" name="group_by_phase" context="{'group_by': 'phase_id'}"/>
-                    <filter string="Status" name="group_by_status" context="{'group_by': 'state'}"/>
+                    <filter string="State" name="group_by_state" context="{'group_by': 'state'}"/>
                 </group>
             </search>
         </field>
@@ -99,6 +98,7 @@
         <field name="res_model">project.issue</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_project_issue_search"/>
+        <field name="context">{'group_by': ['project_id', 'state'], 'search_default_group_by_project': 1, 'search_default_group_by_state': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Record a new issue

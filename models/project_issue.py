@@ -28,7 +28,7 @@ class ProjectIssue(models.Model):
         ('open', 'Open'),
         ('resolved', 'Resolved'),
         ('closed', 'Closed'),
-    ], string='Status', default='draft', tracking=True)
+    ], string='State', default='draft', tracking=True)
 
     date_reported = fields.Date(string='Date Reported', default=fields.Date.today)
     date_resolved = fields.Date(string='Date Resolved')
