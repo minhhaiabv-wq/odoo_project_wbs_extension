@@ -110,5 +110,5 @@
               name="Issues"
               parent="project.menu_main_pm"
               action="action_project_issue"
-              sequence="31"/>
+              sequence="6"/>
 </odoo>

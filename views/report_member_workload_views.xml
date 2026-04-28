@@ -64,8 +64,9 @@
         </field>
     </record>
 
-    <menuitem id="menu_report_member_workload" name="Member Workload"
-              parent="project.menu_project_report"
+    <menuitem id="menu_report_member_workload"
+              name="Member Workload"
+              parent="project.menu_main_pm"
               action="action_report_member_workload"
-              sequence="3"/>
+              sequence="4"/>
 </odoo>
