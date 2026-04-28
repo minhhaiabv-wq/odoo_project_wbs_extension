@@ -3,12 +3,25 @@ from odoo import models, fields, api
 class ProjectTask(models.Model):
     _inherit = 'project.task'
     
-    user_ids = fields.Many2many('res.users', domain="[('id', 'in', project_member_ids), ('share', '=', False)]")
+    user_ids = fields.Many2many(
+        'res.users', 
+        domain="[('id', 'in', project_member_ids), ('share', '=', False)]",
+        compute='_compute_user_ids_from_phase',
+        store=True,
+        readonly=False
+    )
+    date_deadline = fields.Date(
+        string='Deadline',
+        compute='_compute_deadline_from_phase',
+        store=True,
+        readonly=False
+    )
     project_member_ids = fields.Many2many('res.users', related='project_id.member_ids')
 
     date_start = fields.Date(string='Start Date')
     date_end = fields.Date(string='End Date')
     effective_hours = fields.Float("Effective Time", tracking=True)
+    allocated_hours = fields.Float("Allocated Time", compute='_compute_allocated_hours', store=True)
 
     phase_line_ids = fields.One2many(
         'project.task.phase',
@@ -24,6 +37,27 @@ class ProjectTask(models.Model):
     
     issue_count = fields.Integer(string='Issue', compute='_compute_bug_count', store=True)
     resolved_count = fields.Integer(string='Resolved', compute='_compute_bug_count', store=True)
+
+    @api.depends('phase_line_ids.planned_hours')
+    def _compute_allocated_hours(self):
+        for task in self:
+            task.allocated_hours = sum(task.phase_line_ids.mapped('planned_hours'))
+
+    @api.depends('phase_line_ids.planned_user_ids')
+    def _compute_user_ids_from_phase(self):
+        for task in self:
+            users = task.phase_line_ids.mapped('planned_user_ids')
+            task.user_ids = users
+
+    @api.depends('phase_line_ids.planned_end')
+    def _compute_deadline_from_phase(self):
+        for task in self:
+            ends = task.phase_line_ids.mapped('planned_end')
+            valid_ends = [e for e in ends if e]
+            if valid_ends:
+                task.date_deadline = max(valid_ends).date()
+            else:
+                task.date_deadline = False
 
     @api.depends('issue_ids')
     def _compute_bug_count(self):
@@ -62,4 +96,4 @@ class ProjectTask(models.Model):
                 'default_project_id': self.project_id.id,
                 'default_task_id': self.id,
             },
-        }
+        }
