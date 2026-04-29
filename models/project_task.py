@@ -22,6 +22,13 @@ class ProjectTask(models.Model):
     date_end = fields.Date(string='End Date')
     effective_hours = fields.Float("Effective Time", tracking=True)
     allocated_hours = fields.Float("Allocated Time", compute='_compute_allocated_hours', store=True)
+    is_project_manager = fields.Boolean(compute='_compute_is_project_manager')
+
+    @api.depends_context('uid')
+    def _compute_is_project_manager(self):
+        for task in self:
+            is_manager = task.project_id.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
+            task.is_project_manager = is_manager
 
     phase_line_ids = fields.One2many(
         'project.task.phase',

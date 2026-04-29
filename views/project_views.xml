@@ -7,9 +7,42 @@
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='tag_ids']" position="after">
-                <field name="phase_ids" widget="many2many_tags"/>
+                <field name="is_project_manager" invisible="1"/>
+                <field name="phase_ids" widget="many2many_tags" readonly="not is_project_manager"/>
             </xpath>
-            
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_start']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='description']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='allow_recurring_tasks']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='allow_task_dependencies']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='allow_milestones']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='privacy_visibility']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_issues" type="object" class="oe_stat_button" icon="fa-bug">
                     <field name="issue_count" widget="statinfo" string="Issues"/>
@@ -18,11 +51,19 @@
                     <field name="review_count" widget="statinfo" string="Reviews"/>
                 </button>
             </xpath>
-
+            <xpath expr="//sheet/group" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
             <xpath expr="//sheet/group" position="after">
                 <group col="2">
                     <group string="Members" colspan="2">
-                        <field name="member_ids" nolabel="1" colspan="2">
+                        <field name="member_ids" nolabel="1" colspan="2" readonly="not is_project_manager">
                             <list>
                                 <field name="name"/>
                                 <field name="login"/>
@@ -32,15 +73,20 @@
                     </group>
                 </group>
             </xpath>
-            
-            <xpath expr="//field[@name='partner_id']" position="attributes">
+            <xpath expr="//group/group/field[@name='partner_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//field[@name='label_tasks']" position="attributes">
+            <xpath expr="//group/group/field[@name='label_tasks']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-            <xpath expr="//field[@name='company_id']" position="attributes">
+            <xpath expr="//div[@name='button_box']//field[@name='label_tasks']" position="attributes">
                 <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group/group/field[@name='company_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group/group/field[@name='user_id']" position="attributes">
+                <attribute name="domain">[('id', 'in', allowed_manager_ids)]</attribute>
             </xpath>
         </field>
     </record>

@@ -13,6 +13,32 @@ class Project(models.Model):
     resolved_count = fields.Integer(string='Resolved', compute='_compute_resolved_issue', store=True)
     resolved_issue = fields.Char(string='Resolved/Issue', compute='_compute_resolved_issue', store=True)
 
+    # Allowed managers
+    allowed_manager_ids = fields.Many2many('res.users', compute='_compute_allowed_manager_ids')
+    is_project_manager = fields.Boolean(compute='_compute_is_project_manager')
+
+    @api.depends_context('uid')
+    def _compute_is_project_manager(self):
+        for project in self:
+            is_manager = project.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
+            project.is_project_manager = is_manager
+
+    def _compute_allowed_manager_ids(self):
+        leader_group = self.env.ref('project_wbs_extension.group_project_leader', raise_if_not_found=False)
+        manager_group = self.env.ref('project.group_project_manager', raise_if_not_found=False)
+        group_ids = []
+        if leader_group:
+            group_ids.append(leader_group.id)
+        if manager_group:
+            group_ids.append(manager_group.id)
+            
+        allowed_users = self.env['res.users'].search([
+            ('share', '=', False),
+            ('group_ids', 'in', group_ids)
+        ])
+        for project in self:
+            project.allowed_manager_ids = allowed_users
+
     # Members
     member_ids = fields.Many2many('res.users', string='Members', tracking=True)
 
@@ -39,29 +65,44 @@ class Project(models.Model):
 
     def action_view_issues(self):
         self.ensure_one()
+        is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
+        ctx = {'default_project_id': self.id}
+        if not is_manager:
+            ctx.update({'create': False, 'delete': False, 'edit': False})
+            
         return {
             'type': 'ir.actions.act_window',
             'name': 'Issues',
             'res_model': 'project.issue',
             'view_mode': 'list,form',
             'domain': [('project_id', '=', self.id)],
-            'context': {
-                'default_project_id': self.id,
-            },
+            'context': ctx,
         }
 
     def action_view_reviews(self):
         self.ensure_one()
+        is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
+        ctx = {'default_project_id': self.id}
+        if not is_manager:
+            ctx.update({'create': False, 'delete': False, 'edit': False})
+            
         return {
             'type': 'ir.actions.act_window',
             'name': 'Reviews',
             'res_model': 'project.review',
             'view_mode': 'list,form',
             'domain': [('project_id', '=', self.id)],
-            'context': {
-                'default_project_id': self.id,
-            },
+            'context': ctx,
         }
+
+    def action_view_tasks(self):
+        action = super().action_view_tasks()
+        is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
+        if not is_manager:
+            ctx = dict(action.get('context', {}))
+            ctx.update({'create': False, 'delete': False, 'edit': False})
+            action['context'] = ctx
+        return action
 
     @api.depends('task_ids.date_start', 'task_ids.date_end')
     def _compute_actual_dates(self):
@@ -87,14 +128,19 @@ class Project(models.Model):
         self.ensure_one()
         action = self.env["ir.actions.act_window"]._for_xml_id("project_wbs_extension.action_project_wbs")
         
+        is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
+        ctx = {
+            'default_project_id': self.id,
+            'search_default_group_by_project': 1,
+            'search_default_group_by_phase': 1,
+            'group_by': ['project_id', 'phase_id'],
+        }
+        if not is_manager:
+            ctx.update({'create': False, 'delete': False, 'edit': False})
+            
         action.update({
             'domain': [('project_id', '=', self.id), ('project_id.active', '=', True)],
-            'context': {
-                'default_project_id': self.id,
-                'search_default_group_by_project': 1,
-                'search_default_group_by_phase': 1,
-                'group_by': ['project_id', 'phase_id'],
-            }
+            'context': ctx
         })
         return action
     
@@ -102,14 +148,19 @@ class Project(models.Model):
         self.ensure_one()
         action = self.env["ir.actions.act_window"]._for_xml_id("project_wbs_extension.action_project_wbs_report")
         
+        is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
+        ctx = {
+            'default_project_id': self.id,
+            'search_default_group_by_project': 1,
+            'search_default_group_by_phase': 1,
+            'group_by': ['project_id', 'phase_id'],
+        }
+        if not is_manager:
+            ctx.update({'create': False, 'delete': False, 'edit': False})
+            
         action.update({
             'domain': [('project_id', '=', self.id), ('project_id.active', '=', True)],
-            'context': {
-                'default_project_id': self.id,
-                'search_default_group_by_project': 1,
-                'search_default_group_by_phase': 1,
-                'group_by': ['project_id', 'phase_id'],
-            }
+            'context': ctx
         })
         return action
 

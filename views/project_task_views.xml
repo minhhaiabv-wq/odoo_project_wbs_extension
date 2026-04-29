@@ -5,6 +5,9 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="is_project_manager" invisible="1"/>
+            </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_issues" type="object" class="oe_stat_button" icon="fa-bug">
                     <field name="issue_count" widget="statinfo" string="Issues"/>
@@ -15,7 +18,7 @@
             </xpath>
             <xpath expr="//page[@name='description_page']" position="after">
                 <page string="WBS">
-                    <field name="phase_line_ids" context="{'default_project_id': project_id, 'default_task_id': id}">
+                    <field name="phase_line_ids" context="{'default_project_id': project_id, 'default_task_id': id}" readonly="not is_project_manager">
                         <list editable="bottom">
                             <field name="project_phase_ids" column_invisible="1"/>
                             <field name="phase_id" domain="[('id', 'in', project_phase_ids)]"/>
@@ -39,7 +42,7 @@
                 <attribute name="readonly">1</attribute>
             </xpath>
             <xpath expr="//field[@name='allocated_hours']" position="attributes">
-                <attribute name="readonly">1</attribute>
+                <attribute name="readonly">not is_project_manager</attribute>
             </xpath>
             <xpath expr="//div[@id='allocated_hours_container']" position="attributes">
                 <attribute name="readonly">1</attribute>
