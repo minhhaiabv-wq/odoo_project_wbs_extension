@@ -110,6 +110,21 @@ class Project(models.Model):
         if not is_manager:
             # Use sudo() to bypass access restrictions on the action record itself
             action = self.env.ref('project_wbs_extension.action_view_task_readonly').sudo().read()[0]
+            
+            # Explicitly force the ReadOnly views for all modes
+            view_kanban = self.env.ref('project_wbs_extension.view_task_kanban_readonly').id
+            view_list = self.env.ref('project_wbs_extension.view_task_tree_readonly').id
+            view_form = self.env.ref('project_wbs_extension.view_task_form_readonly').id
+            
+            action['views'] = [
+                (view_kanban, 'kanban'),
+                (view_list, 'list'),
+                (view_form, 'form'),
+                (False, 'calendar'),
+                (False, 'pivot'),
+                (False, 'graph'),
+            ]
+            
             action.update({
                 'domain': [('project_id', '=', self.id)],
                 'context': {
