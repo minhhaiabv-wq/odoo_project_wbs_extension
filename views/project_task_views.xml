@@ -16,6 +16,15 @@
                     <field name="review_count" widget="statinfo" string="Reviews"/>
                 </button>
             </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//group" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="readonly">not is_project_manager</attribute>
+            </xpath>
             <xpath expr="//page[@name='description_page']" position="after">
                 <page string="WBS">
                     <field name="phase_line_ids" context="{'default_project_id': project_id, 'default_task_id': id}" readonly="not is_project_manager">
@@ -59,7 +68,6 @@
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
-
         </field>
     </record>
 
@@ -81,5 +89,78 @@
                        readonly="readonly_timesheet"/>
             </xpath>
         </field>
+    </record>
+
+    <record id="view_task_tree_readonly" model="ir.ui.view">
+        <field name="name">project.task.list.readonly</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="create">false</attribute>
+                <attribute name="delete">false</attribute>
+                <attribute name="edit">false</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_task_kanban_readonly" model="ir.ui.view">
+        <field name="name">project.task.kanban.readonly</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="create">false</attribute>
+                <attribute name="delete">false</attribute>
+                <attribute name="quick_create">false</attribute>
+                <attribute name="group_create">false</attribute>
+                <attribute name="group_edit">false</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_task_tree_readonly" model="ir.ui.view">
+        <field name="name">project.task.list.readonly</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="delete">0</attribute>
+                <attribute name="edit">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_task_kanban_readonly" model="ir.ui.view">
+        <field name="name">project.task.kanban.readonly</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="delete">0</attribute>
+                <attribute name="quick_create">0</attribute>
+                <attribute name="group_create">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_view_task_readonly" model="ir.actions.act_window">
+        <field name="name">Tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">kanban,list,calendar,pivot,graph,form</field>
+        <field name="search_view_id" ref="project.view_task_search_form"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No tasks found.
+            </p>
+        </field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_task_kanban_readonly')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_task_tree_readonly')})]"/>
     </record>
 </odoo>

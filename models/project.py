@@ -31,7 +31,7 @@ class Project(models.Model):
             group_ids.append(leader_group.id)
         if manager_group:
             group_ids.append(manager_group.id)
-            
+
         allowed_users = self.env['res.users'].search([
             ('share', '=', False),
             ('group_ids', 'in', group_ids)
@@ -68,8 +68,14 @@ class Project(models.Model):
         is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
         ctx = {'default_project_id': self.id}
         if not is_manager:
-            ctx.update({'create': False, 'delete': False, 'edit': False})
-            
+            ctx.update({
+                'create': False,
+                'delete': False,
+                'edit': False,
+                'quick_create': False,
+                'hide_create': True,
+            })
+
         return {
             'type': 'ir.actions.act_window',
             'name': 'Issues',
@@ -84,8 +90,12 @@ class Project(models.Model):
         is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
         ctx = {'default_project_id': self.id}
         if not is_manager:
-            ctx.update({'create': False, 'delete': False, 'edit': False})
-            
+            ctx.update({
+                'edit': False,
+                'quick_create': False,
+                'hide_create': True,
+            })
+
         return {
             'type': 'ir.actions.act_window',
             'name': 'Reviews',
@@ -96,13 +106,20 @@ class Project(models.Model):
         }
 
     def action_view_tasks(self):
-        action = super().action_view_tasks()
         is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
         if not is_manager:
-            ctx = dict(action.get('context', {}))
-            ctx.update({'create': False, 'delete': False, 'edit': False})
-            action['context'] = ctx
-        return action
+            # Use sudo() to bypass access restrictions on the action record itself
+            action = self.env.ref('project_wbs_extension.action_view_task_readonly').sudo().read()[0]
+            action.update({
+                'domain': [('project_id', '=', self.id)],
+                'context': {
+                    'default_project_id': self.id,
+                    'active_id': self.id,
+                    'active_model': 'project.project',
+                }
+            })
+            return action
+        return super().action_view_tasks()
 
     @api.depends('task_ids.date_start', 'task_ids.date_end')
     def _compute_actual_dates(self):
@@ -127,7 +144,7 @@ class Project(models.Model):
     def action_view_wbs(self):
         self.ensure_one()
         action = self.env["ir.actions.act_window"]._for_xml_id("project_wbs_extension.action_project_wbs")
-        
+
         is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
         ctx = {
             'default_project_id': self.id,
@@ -136,14 +153,18 @@ class Project(models.Model):
             'group_by': ['project_id', 'phase_id'],
         }
         if not is_manager:
-            ctx.update({'create': False, 'delete': False, 'edit': False})
-            
+            ctx.update({
+                'edit': False,
+                'quick_create': False,
+                'hide_create': True,
+            })
+
         action.update({
             'domain': [('project_id', '=', self.id), ('project_id.active', '=', True)],
             'context': ctx
         })
         return action
-    
+
     def action_view_wbs_report(self):
         self.ensure_one()
         action = self.env["ir.actions.act_window"]._for_xml_id("project_wbs_extension.action_project_wbs_report")
@@ -156,8 +177,12 @@ class Project(models.Model):
             'group_by': ['project_id', 'phase_id'],
         }
         if not is_manager:
-            ctx.update({'create': False, 'delete': False, 'edit': False})
-            
+            ctx.update({
+                'edit': False,
+                'quick_create': False,
+                'hide_create': True,
+            })
+
         action.update({
             'domain': [('project_id', '=', self.id), ('project_id.active', '=', True)],
             'context': ctx

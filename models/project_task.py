@@ -1,5 +1,4 @@
 from odoo import models, fields, api
-
 class ProjectTask(models.Model):
     _inherit = 'project.task'
     
@@ -104,3 +103,55 @@ class ProjectTask(models.Model):
                 'default_task_id': self.id,
             },
         }
+
+    @api.model
+    def check_access_rights(self, operation, raise_exception=True):
+        res = super().check_access_rights(operation, raise_exception=raise_exception)
+        
+        if operation == 'create' and res and not self.env.user.has_group('project.group_project_manager'):
+            context = self.env.context
+            project_id = context.get('active_id') or context.get('default_project_id')
+            
+            # 1. Final Resort: Parse project_id from URL path or referrer
+            if not project_id:
+                from odoo.http import request
+                try:
+                    if request and request.httprequest:
+                        # Check full path and referrer
+                        url = request.httprequest.full_path or request.httprequest.referrer or ""
+                        import re
+                        # Pattern for /projects/ID/tasks or ?active_id=ID or &id=ID
+                        match = re.search(r'/projects/(\d+)', url) or \
+                                re.search(r'active_id=(\d+)', url) or \
+                                re.search(r'[?&]id=(\d+)', url)
+                        if match:
+                            project_id = match.group(1)
+                except Exception:
+                    pass
+
+            # 2. Backup: HTTP Request params
+            if not project_id:
+                from odoo.http import request
+                try:
+                    if request and hasattr(request, 'params'):
+                        project_id = request.params.get('id') or request.params.get('active_id')
+                except Exception:
+                    pass
+
+            if project_id:
+                try:
+                    if isinstance(project_id, list):
+                        project_id = project_id[0]
+                    
+                    project = self.env['project.project'].browse(int(project_id))
+                    if project.exists() and project._name == 'project.project':
+                        if project.user_id != self.env.user:
+                            if raise_exception:
+                                from odoo.exceptions import AccessError
+                                raise AccessError("You are not the Project Manager of this project.")
+                            return False
+                except Exception:
+                    pass
+        return res
+
+
