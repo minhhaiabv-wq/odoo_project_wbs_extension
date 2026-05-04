@@ -7,7 +7,7 @@ class ProjectTask(models.Model):
         domain="[('id', 'in', project_member_ids), ('share', '=', False)]",
         compute='_compute_user_ids_from_phase',
         store=True,
-        readonly=False
+        readonly=True
     )
     date_deadline = fields.Date(
         string='Deadline',

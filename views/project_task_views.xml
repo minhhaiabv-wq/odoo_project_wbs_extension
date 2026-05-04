@@ -64,7 +64,7 @@
             </xpath>
 
             <xpath expr="//field[@name='user_ids']" position="attributes">
-                <attribute name="invisible">1</attribute>
+                <attribute name="invisible">0</attribute>
             </xpath>
             <xpath expr="//label[@for='date_deadline']" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -134,6 +134,17 @@
                 <attribute name="delete">0</attribute>
                 <attribute name="quick_create">0</attribute>
                 <attribute name="group_create">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_task_kanban_inherited_wbs" model="ir.ui.view">
+        <field name="name">project.task.kanban.inherited.wbs</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_ids']" position="attributes">
+                <attribute name="readonly">1</attribute>
             </xpath>
         </field>
     </record>
