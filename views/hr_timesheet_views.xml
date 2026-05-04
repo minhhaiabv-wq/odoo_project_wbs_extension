@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Timesheet Line Tree View -->
     <record id="hr_timesheet_line_tree_inherit_wbs" model="ir.ui.view">
         <field name="name">account.analytic.line.list.hr_timesheet.wbs</field>
         <field name="model">account.analytic.line</field>
@@ -7,16 +8,17 @@
         <field name="arch" type="xml">
             <field name="task_id" position="after">
                 <field name="phase_id"
-                    string="Phase line"
+                    string="Phase"
                     optional="show"
                     options="{'no_create_edit': True, 'no_open': True}"
                     readonly="readonly_timesheet"/>
-                <field name="progress" string="Progress %" optional="show"/>
+                <field name="progress" string="Progress %" widget="project_task_progressbar" optional="show"/>
                 <field name="end_flag" widget="boolean_toggle"/>
             </field>
         </field>
     </record>
 
+    <!-- Timesheet Line Form View -->
     <record id="hr_timesheet_line_form_inherit_wbs" model="ir.ui.view">
         <field name="name">account.analytic.line.form.hr_timesheet.wbs</field>
         <field name="model">account.analytic.line</field>
@@ -24,7 +26,7 @@
         <field name="arch" type="xml">
             <field name="task_id" position="after">
                 <field name="phase_id"
-                    string="Phase form"
+                    string="Phase"
                     options="{'no_create_edit': True, 'no_open': True}"
                     readonly="readonly_timesheet"/>
                 <field name="progress" string="Progress %" optional="show"/>
@@ -35,6 +37,7 @@
         </field>
     </record>
 
+    <!-- Timesheet Line Search View (In task view) -->
     <record id="hr_timesheet_line_search_inherit_wbs" model="ir.ui.view">
         <field name="name">account.analytic.line.search.hr_timesheet.wbs</field>
         <field name="model">account.analytic.line</field>
@@ -49,6 +52,7 @@
         </field>
     </record>
 
+    <!-- Timesheet Line Calendar View -->
     <record id="view_calendar_account_analytic_line_multi_create_inherit_wbs" model="ir.ui.view">
         <field name="name">account.analytic.line.calendar.multi_create.wbs</field>
         <field name="model">account.analytic.line</field>
@@ -61,6 +65,8 @@
             </field>
         </field>
     </record>
+
+    <!-- Project Form View (Timesheet) -->
     <record id="project_project_view_form_inherit_hr_timesheet_wbs" model="ir.ui.view">
         <field name="name">project.project.form.inherit.hr_timesheet.wbs</field>
         <field name="model">project.project</field>

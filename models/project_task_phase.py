@@ -35,23 +35,21 @@ class ProjectTaskPhase(models.Model):
     actual_hours = fields.Float(string='Actual Hours', compute="_compute_actual_data", tracking=True, store=True)
 
     # ===== Issue =====
+    issue_ids = fields.One2many('project.issue', 'task_phase_id', string='Issues')
     issue_count = fields.Integer(string='Issue', compute='_compute_bug_count', store=True)
     resolved_count = fields.Integer(string='Resolved', compute='_compute_bug_count', store=True)
-    progress = fields.Integer(string='Progress', compute="_compute_actual_data", store=True)
+    progress = fields.Integer(string='Progress', compute="_compute_actual_data", store=True, group_operator=False)
     end_flag = fields.Boolean(string='End Flag', compute="_compute_actual_data", store=True)
 
     # bug_count is removed in favor of issue_count
+    review_ids = fields.One2many('project.review', 'task_phase_id', string='Reviews')
     review_count = fields.Integer(string='Review Count', compute='_compute_review_count', store=True)
 
-    @api.depends('task_id', 'phase_id')
+    @api.depends('issue_ids', 'issue_ids.state')
     def _compute_bug_count(self):
         for record in self:
-            issues = self.env['project.issue'].search([
-                ('task_id', '=', record.task_id.id),
-                ('phase_id', '=', record.phase_id.id)
-            ])
-            record.issue_count = len(issues)
-            record.resolved_count = len(issues.filtered(lambda b: b.state in ('resolved', 'closed')))
+            record.issue_count = len(record.issue_ids)
+            record.resolved_count = len(record.issue_ids.filtered(lambda b: b.state in ('resolved', 'closed')))
 
     @api.onchange('project_id')
     def _onchange_project_id(self):
@@ -65,13 +63,10 @@ class ProjectTaskPhase(models.Model):
         if self.task_id:
             self.project_id = self.task_id.project_id
 
-    @api.depends('task_id', 'phase_id')
+    @api.depends('review_ids')
     def _compute_review_count(self):
         for record in self:
-            record.review_count = self.env['project.review'].search_count([
-                ('task_id', '=', record.task_id.id),
-                ('phase_id', '=', record.phase_id.id)
-            ])
+            record.review_count = len(record.review_ids)
 
     def action_view_issues(self):
         self.ensure_one()

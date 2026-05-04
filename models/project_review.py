@@ -22,6 +22,19 @@ class ProjectReview(models.Model):
         ('done', 'Done'),
     ], string='Status', default='draft', tracking=True)
 
+    task_phase_id = fields.Many2one('project.task.phase', string='Task Phase', compute='_compute_task_phase_id', store=True)
+
+    @api.depends('task_id', 'phase_id')
+    def _compute_task_phase_id(self):
+        for record in self:
+            if record.task_id and record.phase_id:
+                record.task_phase_id = self.env['project.task.phase'].sudo().search([
+                    ('task_id', '=', record.task_id.id),
+                    ('phase_id', '=', record.phase_id.id)
+                ], limit=1)
+            else:
+                record.task_phase_id = False
+
     can_change_state = fields.Boolean(compute='_compute_can_change_state')
     is_leader_or_manager = fields.Boolean(compute='_compute_is_leader_or_manager')
 
@@ -41,6 +54,7 @@ class ProjectReview(models.Model):
         self.write({'state': 'done'})
 
     @api.onchange('project_id')
+
     def _onchange_project_id(self):
         self.task_id = False
         self.phase_id = False

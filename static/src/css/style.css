@@ -13,6 +13,17 @@
     max-width: 130px !important;
 }
 
+/* css for table issue */
+.issue-list th[data-name="priority"] {
+    width: 70px !important;
+    max-width: 70px !important;
+}
+
+.issue-list th[data-name="issue_no"] {
+    width: 35px !important;
+    max-width: 35px !important;
+}
+
 /* Hide datetime picker in Member Workload calendar sidebar */
 .o_calendar_sidebar .o_datetime_picker {
     display: none !important;

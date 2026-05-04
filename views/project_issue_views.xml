@@ -4,15 +4,16 @@
         <field name="name">project.issue.tree</field>
         <field name="model">project.issue</field>
         <field name="arch" type="xml">
-            <list string="Issues" expand="true" decoration-danger="priority == '3'" decoration-warning="priority == '2'" decoration-muted="state == 'closed'">
-                <field name="priority" widget="priority"/>
+            <list string="Issues" class="issue-list" expand="true" decoration-warning="state == 'open'" decoration-info="state == 'resolved'" decoration-success="state == 'closed'">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="issue_no" string="No."/>
                 <field name="name"/>
                 <field name="task_id"/>
                 <field name="phase_id"/>
                 <field name="assigned_to"/>
-                <field name="state" widget="badge" decoration-info="state == 'open'" decoration-success="state == 'resolved'" optional="hide"/>
                 <field name="date_reported"/>
                 <field name="date_resolved" optional="hide"/>
+                <field name="state" widget="badge" decoration-warning="state == 'open'" decoration-info="state == 'resolved'" decoration-success="state == 'closed'" optional="show"/>
             </list>
         </field>
     </record>
@@ -34,14 +35,19 @@
                 <sheet>
                     <field name="is_creator" invisible="1"/>
                     <field name="is_assigned" invisible="1"/>
-                    <div class="oe_title">
-                        <label for="name" string="Issue Title"/>
-                        <h1>
-                            <div class="d-flex">
-                                <field name="priority" widget="priority" class="me-2" nolabel="1" readonly="not is_leader_or_manager and not is_creator"/>
-                                <field class="text-break" name="name" options="{'line_breaks': False}" widget="text" placeholder="Issue Title..." readonly="not is_leader_or_manager and not is_creator"/>
+                    <div class="oe_button_box">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="w-100">
+                                <div class="d-flex">
+                                    <field name="issue_no" class="me-2" invisible="not issue_no"/>
+                                    <span class="me-2" invisible="not issue_no">-</span>
+                                    <field class="text-break" name="name" options="{'line_breaks': False}" widget="text" placeholder="Issue Title..." readonly="not is_leader_or_manager and not is_creator"/>
+                                </div>
+                            </h1>
+                            <div class="d-flex justify-content-end align-items-center">
+                                <field name="priority" class="h3 pe-2" widget="priority_switch"/>
                             </div>
-                        </h1>
+                        </div>
                     </div>
                     <group>
                         <group>
@@ -82,6 +88,8 @@
                 <filter string="My Reported" name="my_reported" domain="[('reported_by', '=', uid)]"/>
                 <filter string="My Issues" name="my_issues" domain="[('assigned_to', '=', uid)]"/>
                 <separator/>
+                <filter string="High Priority" name="high_priority" domain="[('priority', 'in', ('2', '3'))]"/>
+                <separator/>
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Open" name="open" domain="[('state', '=', 'open')]"/>
                 <filter string="Resolved" name="resolved" domain="[('state', '=', 'resolved')]"/>
@@ -91,6 +99,7 @@
                     <filter string="Task" name="group_by_task" context="{'group_by': 'task_id'}"/>
                     <filter string="Phase" name="group_by_phase" context="{'group_by': 'phase_id'}"/>
                     <filter string="State" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Priority" name="group_by_priority" context="{'group_by': 'priority'}"/>
                 </group>
             </search>
         </field>
@@ -101,7 +110,7 @@
         <field name="res_model">project.issue</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_project_issue_search"/>
-        <field name="context">{'group_by': ['project_id', 'state'], 'search_default_group_by_project': 1, 'search_default_group_by_state': 1}</field>
+        <field name="context">{'search_default_group_by_project': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Record a new issue

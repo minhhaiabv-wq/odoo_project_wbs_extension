@@ -4,9 +4,11 @@ class ProjectIssue(models.Model):
     _name = 'project.issue'
     _description = 'Project Issue'
     _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = 'issue_no asc, priority desc'
 
     name = fields.Char(string='Issue Title', required=True, tracking=True)
-    content = fields.Html(string='Issue Content', tracking=True)
+    issue_no = fields.Integer(string='No.', readonly=True, copy=False, group_operator=False)
+    content = fields.Html(string='Issue Content')
     project_id = fields.Many2one('project.project', string='Project', required=True, tracking=True)
     task_id = fields.Many2one('project.task', string='Task', tracking=True)
     phase_id = fields.Many2one('project.phase', string='Phase', tracking=True)
@@ -21,7 +23,7 @@ class ProjectIssue(models.Model):
         ('1', 'Normal'),
         ('2', 'High'),
         ('3', 'Urgent'),
-    ], string='Priority', default='1', tracking=True)
+    ], string='Priority', default='0', tracking=True)
     
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -29,15 +31,45 @@ class ProjectIssue(models.Model):
         ('resolved', 'Resolved'),
         ('closed', 'Closed'),
     ], string='State', default='draft', tracking=True)
+    
+    state_rank = fields.Integer(compute='_compute_state_rank', store=True)
+
+    @api.depends('state')
+    def _compute_state_rank(self):
+        rank_map = {'draft': 1, 'open': 2, 'resolved': 3, 'closed': 4}
+        for record in self:
+            record.state_rank = rank_map.get(record.state, 5)
 
     date_reported = fields.Date(string='Date Reported', default=fields.Date.today, tracking=True)
     date_resolved = fields.Date(string='Date Resolved', tracking=True)
     
+    task_phase_id = fields.Many2one('project.task.phase', string='Task Phase', compute='_compute_task_phase_id', store=True)
+
+    @api.depends('task_id', 'phase_id')
+    def _compute_task_phase_id(self):
+        for record in self:
+            if record.task_id and record.phase_id:
+                record.task_phase_id = self.env['project.task.phase'].sudo().search([
+                    ('task_id', '=', record.task_id.id),
+                    ('phase_id', '=', record.phase_id.id)
+                ], limit=1)
+            else:
+                record.task_phase_id = False
+
     # Compute fields for access control
     can_change_state = fields.Boolean(compute='_compute_access_control')
     is_leader_or_manager = fields.Boolean(compute='_compute_access_control')
     is_creator = fields.Boolean(compute='_compute_access_control')
     is_assigned = fields.Boolean(compute='_compute_access_control')
+    
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('issue_no') and vals.get('project_id'):
+                # Find the maximum issue_no for this project
+                last_issue = self.search([('project_id', '=', vals['project_id'])], order='issue_no desc', limit=1)
+                vals['issue_no'] = (last_issue.issue_no or 0) + 1
+        return super(ProjectIssue, self).create(vals_list)
 
     @api.depends('reported_by', 'assigned_to')
     def _compute_access_control(self):
@@ -75,6 +107,7 @@ class ProjectIssue(models.Model):
         return super(ProjectIssue, self).write(vals)
 
     def action_confirm(self):
+
         self.write({'state': 'open'})
 
     def action_resolve(self):
