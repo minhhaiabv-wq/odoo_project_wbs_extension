@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, exceptions, _
 
 class ProjectIssue(models.Model):
     _name = 'project.issue'
@@ -6,7 +6,7 @@ class ProjectIssue(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Issue Title', required=True, tracking=True)
-    content = fields.Html(string='Issue Content')
+    content = fields.Html(string='Issue Content', tracking=True)
     project_id = fields.Many2one('project.project', string='Project', required=True, tracking=True)
     task_id = fields.Many2one('project.task', string='Task', tracking=True)
     phase_id = fields.Many2one('project.phase', string='Phase', tracking=True)
@@ -30,22 +30,49 @@ class ProjectIssue(models.Model):
         ('closed', 'Closed'),
     ], string='State', default='draft', tracking=True)
 
-    date_reported = fields.Date(string='Date Reported', default=fields.Date.today)
-    date_resolved = fields.Date(string='Date Resolved')
-    can_change_state = fields.Boolean(compute='_compute_can_change_state')
-    is_leader_or_manager = fields.Boolean(compute='_compute_is_leader_or_manager')
+    date_reported = fields.Date(string='Date Reported', default=fields.Date.today, tracking=True)
+    date_resolved = fields.Date(string='Date Resolved', tracking=True)
+    
+    # Compute fields for access control
+    can_change_state = fields.Boolean(compute='_compute_access_control')
+    is_leader_or_manager = fields.Boolean(compute='_compute_access_control')
+    is_creator = fields.Boolean(compute='_compute_access_control')
+    is_assigned = fields.Boolean(compute='_compute_access_control')
 
-    def _compute_is_leader_or_manager(self):
+    @api.depends('reported_by', 'assigned_to')
+    def _compute_access_control(self):
         is_manager = self.env.user.has_group('project.group_project_manager') or \
                      self.env.user.has_group('project_wbs_extension.group_project_leader')
         for record in self:
             record.is_leader_or_manager = is_manager
+            record.is_creator = record.reported_by == self.env.user
+            record.is_assigned = record.assigned_to == self.env.user
+            record.can_change_state = is_manager or record.is_creator or record.is_assigned
 
-    def _compute_can_change_state(self):
+    def write(self, vals):
+        # Fields that assigned_to can change
+        ALLOWED_FIELDS_ASSIGNED = {'state', 'date_resolved', 'content'}
+        
+        # Check if user has full rights
         is_manager = self.env.user.has_group('project.group_project_manager') or \
                      self.env.user.has_group('project_wbs_extension.group_project_leader')
-        for record in self:
-            record.can_change_state = is_manager or (record.assigned_to == self.env.user)
+        
+        if not is_manager:
+            for record in self:
+                is_creator = record.reported_by == self.env.user
+                is_assigned = record.assigned_to == self.env.user
+                
+                if not is_creator:
+                    if is_assigned:
+                        # If assigned, can only change allowed fields
+                        for key in vals.keys():
+                            if key not in ALLOWED_FIELDS_ASSIGNED:
+                                raise exceptions.UserError(_("As the assigned user, you can only change: State, Date Resolved, and Content."))
+                    else:
+                        # If not manager, not creator, and not assigned, they shouldn't edit
+                        raise exceptions.AccessError(_("You do not have permission to edit this issue."))
+        
+        return super(ProjectIssue, self).write(vals)
 
     def action_confirm(self):
         self.write({'state': 'open'})

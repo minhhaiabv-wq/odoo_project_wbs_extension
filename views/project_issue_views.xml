@@ -10,8 +10,9 @@
                 <field name="task_id"/>
                 <field name="phase_id"/>
                 <field name="assigned_to"/>
-                <field name="state" widget="badge" decoration-info="state == 'open'" decoration-success="state == 'resolved'"/>
+                <field name="state" widget="badge" decoration-info="state == 'open'" decoration-success="state == 'resolved'" optional="hide"/>
                 <field name="date_reported"/>
+                <field name="date_resolved" optional="hide"/>
             </list>
         </field>
     </record>
@@ -24,40 +25,42 @@
                 <header>
                     <field name="can_change_state" invisible="1"/>
                     <field name="is_leader_or_manager" invisible="1"/>
-                    <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft' or not can_change_state" class="oe_highlight"/>
+                    <button name="action_confirm" string="Open" type="object" invisible="state != 'draft' or not can_change_state" class="oe_highlight"/>
                     <button name="action_resolve" string="Resolve" type="object" invisible="state != 'open' or not can_change_state" class="oe_highlight"/>
-                    <button name="action_close" string="Close" type="object" invisible="state != 'resolved' or not can_change_state"/>
+                    <button name="action_close" string="Close" type="object" invisible="state != 'resolved' or not can_change_state" class="oe_highlight"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,open,resolved,closed" options="{'clickable': '1'}" invisible="not is_leader_or_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,open,resolved,closed" invisible="is_leader_or_manager"/>
                 </header>
                 <sheet>
+                    <field name="is_creator" invisible="1"/>
+                    <field name="is_assigned" invisible="1"/>
                     <div class="oe_title">
                         <label for="name" string="Issue Title"/>
                         <h1>
                             <div class="d-flex">
-                                <field name="priority" widget="priority" class="me-2" nolabel="1"/>
-                                <field class="text-break" name="name" options="{'line_breaks': False}" widget="text" placeholder="Issue Title..."/>
+                                <field name="priority" widget="priority" class="me-2" nolabel="1" readonly="not is_leader_or_manager and not is_creator"/>
+                                <field class="text-break" name="name" options="{'line_breaks': False}" widget="text" placeholder="Issue Title..." readonly="not is_leader_or_manager and not is_creator"/>
                             </div>
                         </h1>
                     </div>
                     <group>
                         <group>
-                            <field name="project_id" domain="[('is_template', '=', False)]"/>
+                            <field name="project_id" domain="[('is_template', '=', False)]" readonly="not is_leader_or_manager and not is_creator"/>
                             <field name="project_phase_ids" invisible="1"/>
-                            <field name="task_id" domain="[('project_id', '=', project_id)]"/>
-                            <field name="phase_id" domain="[('id', 'in', project_phase_ids)]"/>
+                            <field name="task_id" domain="[('project_id', '=', project_id)]" readonly="not is_leader_or_manager and not is_creator"/>
+                            <field name="phase_id" domain="[('id', 'in', project_phase_ids)]" readonly="not is_leader_or_manager and not is_creator"/>
                         </group>
                         <group>
                             <field name="project_member_ids" invisible="1"/>
-                            <field name="reported_by" domain="[('id', 'in', project_member_ids)]"/>
-                            <field name="assigned_to" domain="[('id', 'in', project_member_ids)]"/>
-                            <field name="date_reported"/>
-                            <field name="date_resolved" invisible="state != 'resolved' and state != 'closed'"/>
+                            <field name="reported_by" domain="[('id', 'in', project_member_ids)]" readonly="not is_leader_or_manager and not is_creator"/>
+                            <field name="assigned_to" domain="[('id', 'in', project_member_ids)]" readonly="not is_leader_or_manager and not is_creator"/>
+                            <field name="date_reported" readonly="not is_leader_or_manager and not is_creator"/>
+                            <field name="date_resolved" readonly="not is_leader_or_manager and not is_creator and not is_assigned"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Content">
-                            <field name="content" placeholder="Write Issue content here..."/>
+                            <field name="content" placeholder="Write Issue content here..." readonly="not is_leader_or_manager and not is_creator and not is_assigned"/>
                         </page>
                     </notebook>
                 </sheet>
