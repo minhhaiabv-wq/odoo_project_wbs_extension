@@ -88,6 +88,14 @@
             <xpath expr="//group/group/field[@name='user_id']" position="attributes">
                 <attribute name="domain">[('id', 'in', allowed_manager_ids)]</attribute>
             </xpath>
+            <xpath expr="//page[@name='description']" position="after">
+                <page string="Webhook URL"> 
+                    <group>
+                        <field name="teams_webhook_url" widget="url" placeholder="https://actbrainvietnam.webhook.office.com/..." readonly="not is_project_manager"/>
+                    </group>
+                </page>
+            </xpath>
+                    
         </field>
     </record>
 

@@ -76,6 +76,39 @@ class ProjectTask(models.Model):
         for task in self:
             task.review_count = len(task.review_ids)
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        tasks = super(ProjectTask, self).create(vals_list)
+        for task in tasks:
+            if task.user_ids:
+                task.project_id._send_teams_notification(
+                    task.user_ids.ids,
+                    f"Task Assignment: {task.name}",
+                    f"You have been assigned to this task in project **{task.project_id.name}**:"
+                )
+        return tasks
+
+    def write(self, vals):
+        # Store old users to detect changes
+        old_users = {}
+        if 'user_ids' in vals or 'phase_line_ids' in vals:
+            for task in self:
+                old_users[task.id] = task.user_ids.ids
+                
+        res = super(ProjectTask, self).write(vals)
+        
+        for task in self:
+            if task.id in old_users:
+                current_users = task.user_ids.ids
+                new_users = list(set(current_users) - set(old_users[task.id]))
+                if new_users:
+                    task.project_id._send_teams_notification(
+                        new_users,
+                        f"Task Assignment: {task.name}",
+                        f"You have been assigned to this task in project **{task.project_id.name}**:"
+                    )
+        return res
+
     def action_view_issues(self):
         self.ensure_one()
         return {

@@ -1,7 +1,14 @@
-from odoo import models, fields, api
+import requests
+import json
+import logging
+from odoo import models, fields, api, _
+
+_logger = logging.getLogger(__name__)
 
 class Project(models.Model):
     _inherit = 'project.project'
+
+    teams_webhook_url = fields.Char(string='Teams Webhook URL', help="Microsoft Teams Incoming Webhook URL for notifications")
 
     # Actual
     actual_start = fields.Date(string='Actual Start', compute='_compute_actual_dates', store=True)
@@ -214,3 +221,137 @@ class Project(models.Model):
             project.resolved_count = resolved_count
             project.issue_count = issue_count
             project.resolved_issue = f"{resolved_count} / {issue_count}"
+
+    def _send_teams_notification(self, user_ids, title, message):
+        """ Send a notification to Microsoft Teams channel via webhook with user mentions """
+        self.ensure_one()
+        if not self.teams_webhook_url:
+            return
+            
+        if isinstance(user_ids, int):
+            user_ids = [user_ids]
+            
+        users = self.env['res.users'].sudo().browse(user_ids)
+        
+        entities = []
+        mention_texts = []
+        
+        for user in users:
+            if user.email:
+                # Format for Teams mention
+                mention_text = f"<at>{user.name}</at>"
+                mention_texts.append(mention_text)
+                entities.append({
+                    "type": "mention",
+                    "text": mention_text,
+                    "mentioned": {
+                        "id": user.email,
+                        "name": user.name
+                    }
+                })
+            else:
+                mention_texts.append(user.name)
+        
+        payload = {
+            "type": "message",
+            "attachments": [
+                {
+                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "content": {
+                        "type": "AdaptiveCard",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": title,
+                                "weight": "bolder",
+                                "size": "large"
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": message,
+                                "wrap": True
+                            },
+                            {
+                                "type": "TextBlock",
+                                "text": ", ".join(mention_texts),
+                                "weight": "bolder",
+                                "color": "accent",
+                                "wrap": True
+                            }
+                        ],
+                        "msteams": {
+                            "entities": entities
+                        },
+                        "$schema": "http://adaptivecards.io/schemas/adaptivecard.json",
+                        "version": "1.2"
+                    }
+                }
+            ]
+        }
+        
+        try:
+            response = requests.post(
+                self.teams_webhook_url, 
+                data=json.dumps(payload),
+                headers={'Content-Type': 'application/json'},
+                timeout=10
+            )
+            if response.status_code != 200:
+                _logger.warning("Failed to send Teams notification. Status: %s, Response: %s", response.status_code, response.text)
+        except Exception as e:
+            _logger.error("Error sending Teams notification: %s", str(e))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        projects = super(Project, self).create(vals_list)
+        for project in projects:
+            if project.user_id:
+                project._send_teams_notification(
+                    project.user_id.id, 
+                    f"Project Assignment: {project.name}", 
+                    "You have been assigned as **Project Manager**:"
+                )
+            if project.member_ids:
+                project._send_teams_notification(
+                    project.member_ids.ids, 
+                    f"Project Assignment: {project.name}", 
+                    "You have been assigned as **Member**:"
+                )
+        return projects
+
+    def write(self, vals):
+        # Store old values to detect changes
+        old_data = {}
+        if 'user_id' in vals or 'member_ids' in vals:
+            for project in self:
+                old_data[project.id] = {
+                    'user_id': project.user_id.id,
+                    'member_ids': project.member_ids.ids
+                }
+                
+        res = super(Project, self).write(vals)
+        
+        for project in self:
+            if project.id in old_data:
+                # Check for new PM
+                if 'user_id' in vals:
+                    new_pm_id = vals.get('user_id')
+                    if new_pm_id and new_pm_id != old_data[project.id]['user_id']:
+                        project._send_teams_notification(
+                            new_pm_id, 
+                            f"Project Assignment: {project.name}", 
+                            "You have been assigned as **Project Manager**:"
+                        )
+                
+                # Check for new members
+                if 'member_ids' in vals:
+                    current_members = project.member_ids.ids
+                    old_members = old_data[project.id]['member_ids']
+                    new_members = list(set(current_members) - set(old_members))
+                    if new_members:
+                        project._send_teams_notification(
+                            new_members, 
+                            f"Project Assignment: {project.name}", 
+                            "You have been assigned as **Member**:"
+                        )
+        return res
