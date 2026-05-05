@@ -63,7 +63,17 @@ class ProjectIssue(models.Model):
                 # Find the maximum issue_no for this project
                 last_issue = self.search([('project_id', '=', vals['project_id'])], order='issue_no desc', limit=1)
                 vals['issue_no'] = (last_issue.issue_no or 0) + 1
-        return super(ProjectIssue, self).create(vals_list)
+        
+        issues = super(ProjectIssue, self).create(vals_list)
+        
+        for issue in issues:
+            if issue.assigned_to and issue.project_id:
+                issue.project_id._send_teams_notification(
+                    issue.assigned_to.id,
+                    f"Issue Assignment: #{issue.issue_no} - {issue.name}",
+                    f"You have been assigned to this issue in project **{issue.project_id.name}**:"
+                )
+        return issues
 
     # Compute access control
     @api.depends('reported_by', 'assigned_to')
@@ -85,6 +95,12 @@ class ProjectIssue(models.Model):
         is_manager = self.env.user.has_group('project.group_project_manager') or \
                      self.env.user.has_group('project_wbs_extension.group_project_leader')
         
+        # Store old data for notifications
+        old_assignees = {}
+        if 'assigned_to' in vals:
+            for record in self:
+                old_assignees[record.id] = record.assigned_to.id
+
         if not is_manager:
             for record in self:
                 is_creator = record.reported_by == self.env.user
@@ -99,8 +115,19 @@ class ProjectIssue(models.Model):
                     else:
                         # If not manager, not creator, and not assigned, they shouldn't edit
                         raise exceptions.AccessError(_("You do not have permission to edit this issue."))
-        
-        return super(ProjectIssue, self).write(vals)
+
+        res = super(ProjectIssue, self).write(vals)
+
+        # Send notifications if assigned_to changed
+        if 'assigned_to' in vals:
+            for record in self:
+                if record.assigned_to and record.assigned_to.id != old_assignees.get(record.id):
+                    record.project_id._send_teams_notification(
+                        record.assigned_to.id,
+                        f"Issue Assignment: #{record.issue_no} - {record.name}",
+                        f"You have been assigned to this issue in project **{record.project_id.name}**:"
+                    )
+        return res
 
     # Confirm issue
     def action_confirm(self):

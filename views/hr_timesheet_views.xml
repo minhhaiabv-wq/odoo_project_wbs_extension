@@ -12,7 +12,7 @@
                     optional="show"
                     options="{'no_create_edit': True, 'no_open': True}"
                     readonly="readonly_timesheet"/>
-                <field name="progress" string="Progress %" widget="project_task_progressbar" optional="show"/>
+                <field name="progress" string="Progress %" optional="show"/>
                 <field name="end_flag" widget="boolean_toggle"/>
             </field>
         </field>
