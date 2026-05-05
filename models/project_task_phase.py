@@ -38,15 +38,17 @@ class ProjectTaskPhase(models.Model):
     issue_ids = fields.One2many('project.issue', 'task_phase_id', string='Issues')
     issue_count = fields.Integer(string='Issue', compute='_compute_bug_count', store=True)
     resolved_count = fields.Integer(string='Resolved', compute='_compute_bug_count', store=True)
-    progress = fields.Integer(string='Progress', compute="_compute_actual_data", store=True, group_operator=False)
+    progress = fields.Integer(string='Progress', compute="_compute_actual_data", store=True, aggregator=None)
     end_flag = fields.Boolean(string='End Flag', compute="_compute_actual_data", store=True)
 
+    # Compute issue count
     @api.depends('issue_ids', 'issue_ids.state')
     def _compute_bug_count(self):
         for record in self:
             record.issue_count = len(record.issue_ids)
             record.resolved_count = len(record.issue_ids.filtered(lambda b: b.state in ('resolved', 'closed')))
 
+    # On change project
     @api.onchange('project_id')
     def _onchange_project_id(self):
         if self.project_id:
@@ -54,11 +56,13 @@ class ProjectTaskPhase(models.Model):
                 self.task_id = False
             self.phase_id = False
 
+    # On change task
     @api.onchange('task_id')
     def _onchange_task_id(self):
         if self.task_id:
             self.project_id = self.task_id.project_id
 
+    # Action view issues
     def action_view_issues(self):
         self.ensure_one()
         return {
@@ -76,6 +80,7 @@ class ProjectTaskPhase(models.Model):
 
     deviation = fields.Float(string='Deviation', compute='_compute_deviation', store=True)
 
+    # Compute display name
     @api.depends('task_id', 'phase_id')
     def _compute_display_name(self):
         for record in self:
@@ -84,6 +89,7 @@ class ProjectTaskPhase(models.Model):
             else:
                 record.display_name = record.phase_id.display_name or ""
 
+    # Check unique task phase
     @api.constrains('task_id', 'phase_id')
     def _check_unique_task_phase(self):
         for record in self:
@@ -96,6 +102,7 @@ class ProjectTaskPhase(models.Model):
             if exist > 0:
                 raise ValidationError(_("Error: Task '%s' already has a phase '%s'!") % (record.task_id.name, record.phase_id.name))
 
+    # Compute actual data
     @api.depends(
         'task_id',
         'task_id.timesheet_ids.date',
@@ -145,6 +152,7 @@ class ProjectTaskPhase(models.Model):
                 record.progress = False
                 record.end_flag = False
 
+    # Compute deviation
     @api.depends('planned_hours', 'actual_hours')
     def _compute_deviation(self):
         for record in self:

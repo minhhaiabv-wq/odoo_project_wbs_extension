@@ -14,11 +14,13 @@ class ReportPerformanceMember(models.TransientModel):
     actual_hours = fields.Float(string='Actual hours')
     performance_ratio = fields.Float(string='Ratio', compute='_compute_ratio')
 
+    # Compute ratio
     @api.depends('planned_hours', 'actual_hours')
     def _compute_ratio(self):
         for record in self:
             record.performance_ratio = (record.actual_hours / record.planned_hours) if record.planned_hours else 0.0
 
+    # Generate report
     def action_generate_report(self):
         # Delete old data
         self.search([]).unlink()
@@ -57,4 +59,4 @@ class ReportPerformanceMember(models.TransientModel):
             'res_model': 'report.performance.member',
             'view_mode': 'list,calendar',
             'target': 'current',
-        }
+        }

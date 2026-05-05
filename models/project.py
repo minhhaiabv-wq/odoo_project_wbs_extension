@@ -10,9 +10,6 @@ class Project(models.Model):
 
     teams_webhook_url = fields.Char(string='Teams Webhook URL', help="Microsoft Teams Incoming Webhook URL for notifications")
 
-    # Actual
-    actual_start = fields.Date(string='Actual Start', compute='_compute_actual_dates', store=True)
-    actual_end = fields.Date(string='Actual End', compute='_compute_actual_dates', store=True)
 
     # Progress
     progress = fields.Float(string='Progress (%)', compute='_compute_progress', store=True)
@@ -24,12 +21,14 @@ class Project(models.Model):
     allowed_manager_ids = fields.Many2many('res.users', compute='_compute_allowed_manager_ids')
     is_project_manager = fields.Boolean(compute='_compute_is_project_manager')
 
+    # Compute is project manager
     @api.depends_context('uid')
     def _compute_is_project_manager(self):
         for project in self:
             is_manager = project.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
             project.is_project_manager = is_manager
 
+    # Compute allowed managers
     def _compute_allowed_manager_ids(self):
         leader_group = self.env.ref('project_wbs_extension.group_project_leader', raise_if_not_found=False)
         manager_group = self.env.ref('project.group_project_manager', raise_if_not_found=False)
@@ -54,6 +53,7 @@ class Project(models.Model):
 
     issue_ids = fields.One2many('project.issue', 'project_id', string='Issues')
 
+    # Action view issues
     def action_view_issues(self):
         self.ensure_one()
         is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
@@ -76,6 +76,7 @@ class Project(models.Model):
             'context': ctx,
         }
 
+    # Action view tasks
     def action_view_tasks(self):
         is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
         if not is_manager:
@@ -107,15 +108,7 @@ class Project(models.Model):
             return action
         return super().action_view_tasks()
 
-    @api.depends('task_ids.date_start', 'task_ids.date_end')
-    def _compute_actual_dates(self):
-        for project in self:
-            dates_start = project.task_ids.mapped('date_start')
-            dates_end = project.task_ids.mapped('date_end')
-
-            project.actual_start = min(dates_start) if dates_start else False
-            project.actual_end = max(dates_end) if dates_end else False
-
+    # Compute progress
     @api.depends('task_ids.allocated_hours', 'task_ids.effective_hours')
     def _compute_progress(self):
         for project in self:
@@ -126,7 +119,8 @@ class Project(models.Model):
                 project.progress = (total_effective / total_allocated) * 100
             else:
                 project.progress = 0.0
-    
+
+    # Action view WBS
     def action_view_wbs(self):
         self.ensure_one()
         action = self.env["ir.actions.act_window"]._for_xml_id("project_wbs_extension.action_project_wbs")
@@ -151,6 +145,7 @@ class Project(models.Model):
         })
         return action
 
+    # Action view WBS report
     def action_view_wbs_report(self):
         self.ensure_one()
         action = self.env["ir.actions.act_window"]._for_xml_id("project_wbs_extension.action_project_wbs_report")
@@ -175,6 +170,7 @@ class Project(models.Model):
         })
         return action
 
+    # Compute resolved issue
     @api.depends('task_ids.resolved_count', 'task_ids.issue_count', 'issue_ids.state')
     def _compute_resolved_issue(self):
         for project in self:
@@ -186,8 +182,11 @@ class Project(models.Model):
             project.issue_count = issue_count
             project.resolved_issue = f"{resolved_count} / {issue_count}"
 
+    # Send teams notification
     def _send_teams_notification(self, user_ids, title, message):
         """ Send a notification to Microsoft Teams channel via webhook with user mentions """
+        if not self:
+            return
         self.ensure_one()
         if not self.teams_webhook_url:
             return
@@ -265,6 +264,7 @@ class Project(models.Model):
         except Exception as e:
             _logger.error("Error sending Teams notification: %s", str(e))
 
+    # Store project
     @api.model_create_multi
     def create(self, vals_list):
         projects = super(Project, self).create(vals_list)
@@ -283,6 +283,7 @@ class Project(models.Model):
                 )
         return projects
 
+    # Write project
     def write(self, vals):
         # Store old values to detect changes
         old_data = {}

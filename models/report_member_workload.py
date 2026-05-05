@@ -17,6 +17,7 @@ class ReportMemberWorkload(models.TransientModel):
     ], string='Status', default='free')
     name = fields.Char(string='Display Name', compute='_compute_name')
 
+    # Compute display name
     @api.depends('user_id', 'task_id', 'phase_id', 'state')
     def _compute_name(self):
         for record in self:
@@ -27,26 +28,27 @@ class ReportMemberWorkload(models.TransientModel):
                 phase_name = record.phase_id.phase_id.name or 'Phase'
                 record.name = f"[{record.user_id.name}] {task_name} - {phase_name}"
 
+    # Generate workload report
     def action_generate_workload(self):
-        # Xóa dữ liệu cũ
+        # Delete old data
         self.search([]).unlink()
 
-        # Xác định khoảng thời gian: 4 tháng (2 tháng trước và 2 tháng tới)
+        # Determine the time period: 4 months (2 months before and 2 months after)
         today = date.today()
-        start_period = today - timedelta(days=today.weekday() + 60) # 2 tháng trước
-        end_period = start_period + timedelta(days=120) # 4 tháng
+        start_period = today - timedelta(days=today.weekday() + 60) # 2 months ago
+        end_period = start_period + timedelta(days=120) # 4 months
 
         projects = self.env['project.project'].search([('active', '=', True)])
-        all_members = projects.mapped('member_ids') # Lấy tất cả thành viên duy nhất từ các dự án active
+        all_members = projects.mapped('member_ids') # Get all unique members from active projects
 
-        # Lấy tất cả các phase (WBS lines) trong khoảng thời gian này
+        # Get all phases (WBS lines) in this time period
         all_phases = self.env['project.task.phase'].search([
             ('planned_start', '<', fields.Datetime.to_string(datetime.combine(end_period, datetime.max.time()))),
             ('planned_end', '>', fields.Datetime.to_string(datetime.combine(start_period, datetime.min.time())))
         ])
 
         for member in all_members:
-            # 1. Tạo bản ghi Busy từ các task phase thực tế (giữ nguyên giờ đã nhập)
+            # 1. Create Busy records from actual task phases (keep entered hours)
             member_phases = all_phases.filtered(lambda p: member.id in p.planned_user_ids.ids)
             for tp in member_phases:
                 self.create({
@@ -59,23 +61,22 @@ class ReportMemberWorkload(models.TransientModel):
                     'state': 'busy'
                 })
 
-            # 2. Tạo bản ghi FREE cho những ngày trống lịch
+            # 2. Create FREE records for empty days
             curr_date = start_period
             while curr_date < end_period:
-                # Chỉ tạo FREE cho ngày làm việc T2-T6
+                # Only create FREE for working days Monday-Friday
                 if curr_date.weekday() < 5:
                     d_start_dt = datetime.combine(curr_date, time.min)
                     d_end_dt = datetime.combine(curr_date, time.max)
 
-                    # Kiểm tra xem ngày này có task nào không
+                    # Check if this day has any tasks
                     has_task = member_phases.filtered(lambda p: 
                         fields.Datetime.to_datetime(p.planned_start) <= d_end_dt and
                         fields.Datetime.to_datetime(p.planned_end) >= d_start_dt
                     )
 
                     if not has_task:
-                        # Thiết lập khung giờ FREE 8h00 - 17h00 (Giờ VN = UTC + 7)
-                        # 8h00 VN = 1h00 UTC, 17h00 VN = 10h00 UTC
+                        # Set FREE time 8h00 - 17h00 (Vietnam Time = UTC + 7)
                         self.create({
                             'user_id': member.id,
                             'date_start': datetime.combine(curr_date, time(1, 0)),

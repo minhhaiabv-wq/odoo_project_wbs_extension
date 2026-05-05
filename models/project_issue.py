@@ -7,7 +7,7 @@ class ProjectIssue(models.Model):
     _order = 'issue_no asc, priority desc'
 
     name = fields.Char(string='Issue Title', required=True, tracking=True)
-    issue_no = fields.Integer(string='No.', readonly=True, copy=False, group_operator=False)
+    issue_no = fields.Integer(string='No.', readonly=True, copy=False, aggregator=None)
     content = fields.Html(string='Issue Content')
     project_id = fields.Many2one('project.project', string='Project', required=True, tracking=True)
     task_id = fields.Many2one('project.task', string='Task', tracking=True)
@@ -32,19 +32,12 @@ class ProjectIssue(models.Model):
         ('closed', 'Closed'),
     ], string='State', default='draft', tracking=True)
     
-    state_rank = fields.Integer(compute='_compute_state_rank', store=True)
-
-    @api.depends('state')
-    def _compute_state_rank(self):
-        rank_map = {'draft': 1, 'open': 2, 'resolved': 3, 'closed': 4}
-        for record in self:
-            record.state_rank = rank_map.get(record.state, 5)
-
     date_reported = fields.Date(string='Date Reported', default=fields.Date.today, tracking=True)
     date_resolved = fields.Date(string='Date Resolved', tracking=True)
     
     task_phase_id = fields.Many2one('project.task.phase', string='Task Phase', compute='_compute_task_phase_id', store=True)
 
+    # Compute task phase
     @api.depends('task_id', 'phase_id')
     def _compute_task_phase_id(self):
         for record in self:
@@ -61,7 +54,8 @@ class ProjectIssue(models.Model):
     is_leader_or_manager = fields.Boolean(compute='_compute_access_control')
     is_creator = fields.Boolean(compute='_compute_access_control')
     is_assigned = fields.Boolean(compute='_compute_access_control')
-    
+
+    # Create issue
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -71,6 +65,7 @@ class ProjectIssue(models.Model):
                 vals['issue_no'] = (last_issue.issue_no or 0) + 1
         return super(ProjectIssue, self).create(vals_list)
 
+    # Compute access control
     @api.depends('reported_by', 'assigned_to')
     def _compute_access_control(self):
         is_manager = self.env.user.has_group('project.group_project_manager') or \
@@ -81,6 +76,7 @@ class ProjectIssue(models.Model):
             record.is_assigned = record.assigned_to == self.env.user
             record.can_change_state = is_manager or record.is_creator or record.is_assigned
 
+    # Write issue
     def write(self, vals):
         # Fields that assigned_to can change
         ALLOWED_FIELDS_ASSIGNED = {'state', 'date_resolved', 'content'}
@@ -106,19 +102,22 @@ class ProjectIssue(models.Model):
         
         return super(ProjectIssue, self).write(vals)
 
+    # Confirm issue
     def action_confirm(self):
-
         self.write({'state': 'open'})
 
+    # Resolve issue
     def action_resolve(self):
         self.write({
             'state': 'resolved',
             'date_resolved': fields.Date.today()
         })
 
+    # Close issue
     def action_close(self):
         self.write({'state': 'closed'})
 
+    # On change project
     @api.onchange('project_id')
     def _onchange_project_id(self):
         self.task_id = False

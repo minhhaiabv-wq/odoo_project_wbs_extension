@@ -12,6 +12,7 @@ class AccountAnalyticLine(models.Model):
     progress = fields.Integer(string='Progress', store=True)
     end_flag = fields.Boolean(string='End Flag', default=False)
 
+    # Auto-select phase when task changes
     @api.onchange('project_id', 'task_id')
     def _onchange_task_id_phase_id(self):
         for record in self:
