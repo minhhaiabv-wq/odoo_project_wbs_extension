@@ -6,7 +6,7 @@ class ProjectTaskPhase(models.Model):
     _description = 'Task Phase (WBS)'
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
-    project_id = fields.Many2one('project.project', string='Project', required=True, tracking=True, store=True)
+    project_id = fields.Many2one('project.project', string='Project', related='task_id.project_id', store=True, readonly=False, required=True)
     task_id = fields.Many2one('project.task', string='Task',
                               required=True, ondelete='cascade', tracking=True, store=True)
     phase_id = fields.Many2one('project.phase', string='Phase', required=True, tracking=True, store=True)
@@ -47,20 +47,6 @@ class ProjectTaskPhase(models.Model):
         for record in self:
             record.issue_count = len(record.issue_ids)
             record.resolved_count = len(record.issue_ids.filtered(lambda b: b.state in ('resolved', 'closed')))
-
-    # On change project
-    @api.onchange('project_id')
-    def _onchange_project_id(self):
-        if self.project_id:
-            if self.task_id and self.task_id.project_id != self.project_id:
-                self.task_id = False
-            self.phase_id = False
-
-    # On change task
-    @api.onchange('task_id')
-    def _onchange_task_id(self):
-        if self.task_id:
-            self.project_id = self.task_id.project_id
 
     # Action view issues
     def action_view_issues(self):
