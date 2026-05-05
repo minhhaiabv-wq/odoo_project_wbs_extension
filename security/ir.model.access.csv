@@ -29,9 +29,6 @@ access_timesheet_member,account.analytic.line project,model_account_analytic_lin
 access_project_collaborator_leader,project.collaborator.user,project.model_project_collaborator,project_wbs_extension.group_project_leader,1,0,0,0
 access_project_collaborator_member,project.collaborator.user,project.model_project_collaborator,project_wbs_extension.group_project_member,1,0,0,0
 
-access_report_performance_manager,report.performance.member,model_report_performance_member,project.group_project_manager,1,1,1,1
-access_report_performance_leader,report.performance.member,model_report_performance_member,project_wbs_extension.group_project_leader,1,1,1,1
-
 access_report_member_workload_manager,report.member.workload,model_report_member_workload,project.group_project_manager,1,1,1,1
 access_report_member_workload_leader,report.member.workload,model_report_member_workload,project_wbs_extension.group_project_leader,1,1,1,1
 access_issue_manager,project.issue,model_project_issue,project.group_project_manager,1,1,1,1
