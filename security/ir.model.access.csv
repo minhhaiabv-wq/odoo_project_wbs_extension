@@ -37,6 +37,3 @@ access_report_member_workload_leader,report.member.workload,model_report_member_
 access_issue_manager,project.issue,model_project_issue,project.group_project_manager,1,1,1,1
 access_issue_leader,project.issue,model_project_issue,project_wbs_extension.group_project_leader,1,1,1,1
 access_issue_member,project.issue,model_project_issue,project_wbs_extension.group_project_member,1,1,1,1
-access_review_manager,project.review,model_project_review,project.group_project_manager,1,1,1,1
-access_review_leader,project.review,model_project_review,project_wbs_extension.group_project_leader,1,1,1,1
-access_review_member,project.review,model_project_review,project_wbs_extension.group_project_member,1,1,1,1

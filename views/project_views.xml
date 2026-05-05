@@ -47,9 +47,6 @@
                 <button name="action_view_issues" type="object" class="oe_stat_button" icon="fa-bug">
                     <field name="issue_count" widget="statinfo" string="Issues"/>
                 </button>
-                <button name="action_view_reviews" type="object" class="oe_stat_button" icon="fa-check-square-o">
-                    <field name="review_count" widget="statinfo" string="Reviews"/>
-                </button>
             </xpath>
             <xpath expr="//sheet/group" position="attributes">
                 <attribute name="readonly">not is_project_manager</attribute>
@@ -95,7 +92,6 @@
                     </group>
                 </page>
             </xpath>
-                    
         </field>
     </record>
 
@@ -140,13 +136,6 @@
                 <div class="d-flex align-items-baseline">
                     <span class="fa fa-bolt me-3 text-muted" title="View Performance"/>
                     <a name="action_view_wbs_report" type="object" title="View Performance"> View Performance</a>
-                </div>
-                <!-- show reviews link in card -->
-                <div class="d-flex align-items-baseline">
-                    <span class="fa fa-check-square-o me-2 text-muted" title="View Reviews"/>
-                    <a name="action_view_reviews" type="object" title="View Reviews">
-                        <field name="review_status"/>
-                    </a>
                 </div>
                 <!-- show issues link in card -->
                 <div class="d-flex align-items-baseline">

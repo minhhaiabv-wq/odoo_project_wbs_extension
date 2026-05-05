@@ -53,22 +53,6 @@ class Project(models.Model):
     phase_ids = fields.Many2many('project.phase', string='Phase', tracking=True)
 
     issue_ids = fields.One2many('project.issue', 'project_id', string='Issues')
-    review_ids = fields.One2many('project.review', 'project_id', string='Reviews')
-
-    # bug_count is removed in favor of issue_count
-    review_count = fields.Integer(string='Review Count', compute='_compute_review_count', store=True)
-    review_status = fields.Char(string='Reviews', compute='_compute_review_count', store=True)
-
-    # _compute_bug_count is removed, its logic is merged into _compute_resolved_issue
-
-    @api.depends('review_ids', 'review_ids.state')
-    def _compute_review_count(self):
-        for project in self:
-            all_reviews = project.review_ids
-            done_count = len(all_reviews.filtered(lambda r: r.state == 'done'))
-            total_count = len(all_reviews)
-            project.review_count = total_count
-            project.review_status = f"{done_count} / {total_count}"
 
     def action_view_issues(self):
         self.ensure_one()
@@ -87,26 +71,6 @@ class Project(models.Model):
             'type': 'ir.actions.act_window',
             'name': 'Issues',
             'res_model': 'project.issue',
-            'view_mode': 'list,form',
-            'domain': [('project_id', '=', self.id)],
-            'context': ctx,
-        }
-
-    def action_view_reviews(self):
-        self.ensure_one()
-        is_manager = self.user_id == self.env.user or self.env.user.has_group('project.group_project_manager')
-        ctx = {'default_project_id': self.id}
-        if not is_manager:
-            ctx.update({
-                'edit': False,
-                'quick_create': False,
-                'hide_create': True,
-            })
-
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Reviews',
-            'res_model': 'project.review',
             'view_mode': 'list,form',
             'domain': [('project_id', '=', self.id)],
             'context': ctx,
@@ -354,4 +318,4 @@ class Project(models.Model):
                             f"Project Assignment: {project.name}", 
                             "You have been assigned as **Member**:"
                         )
-        return res
+        return res

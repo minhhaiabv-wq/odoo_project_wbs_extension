@@ -8,17 +8,11 @@
             <xpath expr="//field[@name='project_id']" position="after">
                 <field name="is_project_manager" invisible="1"/>
             </xpath>
-            
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_issues" type="object" class="oe_stat_button" icon="fa-bug">
                     <field name="issue_count" widget="statinfo" string="Issues"/>
                 </button>
-                <button name="action_view_reviews" type="object" class="oe_stat_button" icon="fa-check-square-o">
-                    <field name="review_count" widget="statinfo" string="Reviews"/>
-                </button>
             </xpath>
-
-            <!-- Safe ReadOnly Attributes for layout stability -->
             <xpath expr="//field[@name='name']" position="attributes">
                 <attribute name="readonly">not is_project_manager</attribute>
             </xpath>
@@ -34,7 +28,6 @@
             <xpath expr="//field[@name='project_id']" position="attributes">
                 <attribute name="readonly">1</attribute>
             </xpath>
-
             <xpath expr="//sheet//group" position="attributes">
                 <attribute name="readonly">not is_project_manager</attribute>
             </xpath>
@@ -57,7 +50,6 @@
                             <field name="actual_user_ids" string="Actual Members" widget="many2many_avatar_user" domain="[('id', 'in', project_member_ids), ('share', '=', False)]" optional="hide"/>
                             <field name="actual_hours" widget="timesheet_uom" type="measure" optional="hide"/>
                             <button name="action_view_issues" type="object" icon="fa-bug" title="Issues" invisible="not id"/>
-                            <button name="action_view_reviews" type="object" icon="fa-check-square-o" title="Reviews" invisible="not id"/>
                         </list>
                     </field>
                 </page>

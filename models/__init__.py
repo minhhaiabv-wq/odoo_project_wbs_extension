@@ -5,6 +5,5 @@ from . import project_task
 from . import project
 from . import timesheets_analysis_report
 from . import project_issue
-from . import project_review
 from . import report_performance_member
 from . import report_member_workload
