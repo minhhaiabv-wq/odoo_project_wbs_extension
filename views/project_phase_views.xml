@@ -8,6 +8,7 @@
                 <field name="sequence"/>
                 <field name="name"/>
                 <field name="description"/>
+                <field name="color" widget="color_picker"/>
             </list>
         </field>
     </record>
@@ -21,6 +22,7 @@
                     <group>
                         <field name="sequence"/>
                         <field name="name"/>
+                        <field name="color" widget="color_picker"/>
                         <field name="description"/>
                     </group>
                 </sheet>

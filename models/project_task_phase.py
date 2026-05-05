@@ -64,7 +64,7 @@ class ProjectTaskPhase(models.Model):
             },
         }
 
-    deviation = fields.Float(string='Deviation', compute='_compute_deviation', store=True)
+    deviation = fields.Float(string='Ratio', compute='_compute_ratio', store=True, aggregator=None)
 
     # Compute display name
     @api.depends('task_id', 'phase_id')
@@ -140,6 +140,6 @@ class ProjectTaskPhase(models.Model):
 
     # Compute deviation
     @api.depends('planned_hours', 'actual_hours')
-    def _compute_deviation(self):
+    def _compute_ratio(self):
         for record in self:
             record.deviation = (record.actual_hours / record.planned_hours) if record.planned_hours else 0.0

@@ -8,4 +8,5 @@ class ProjectPhase(models.Model):
     name = fields.Char(string='Phase Name', required=True)
     sequence = fields.Integer(string='Sequence', default=10)
     description = fields.Text(string='Description')
-    active = fields.Boolean(default=True)
+    color = fields.Integer(string='Color')
+    active = fields.Boolean(default=True)

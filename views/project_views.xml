@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='tag_ids']" position="after">
                 <field name="is_project_manager" invisible="1"/>
-                <field name="phase_ids" widget="many2many_tags" readonly="not is_project_manager"/>
+                <field name="phase_ids" widget="many2many_tags" options="{'color_field': 'color'}" readonly="not is_project_manager"/>
             </xpath>
             <xpath expr="//field[@name='name']" position="attributes">
                 <attribute name="readonly">not is_project_manager</attribute>
@@ -125,7 +125,7 @@
                 <!-- show phase in card -->
                 <div class="d-flex align-items-baseline">
                     <span class="fa fa-road me-2 text-muted" title="Phase"/>
-                    <field name="phase_ids"/>
+                    <field name="phase_ids" options="{'color_field': 'color'}"/>
                 </div>
                 <!-- show WBS link in card -->
                 <div class="d-flex align-items-baseline">

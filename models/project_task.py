@@ -11,9 +11,14 @@ class ProjectTask(models.Model):
     )
     date_deadline = fields.Date(
         string='Deadline',
-        compute='_compute_deadline_from_phase',
+        compute='_compute_dates_from_phase',
         store=True,
         readonly=False
+    )
+    planned_start = fields.Date(
+        string='Planned Start',
+        compute='_compute_dates_from_phase',
+        store=True
     )
     project_member_ids = fields.Many2many('res.users', related='project_id.member_ids')
 
@@ -34,6 +39,19 @@ class ProjectTask(models.Model):
         string='Phase (WBS)',
         tracking=True
     )
+    phase_ids = fields.Many2many(
+        'project.phase',
+        compute='_compute_phase_ids',
+        string='Phases',
+        store=True
+    )
+
+    # Compute phase ids
+    @api.depends('phase_line_ids.phase_id')
+    def _compute_phase_ids(self):
+        for task in self:
+            task.phase_ids = task.phase_line_ids.mapped('phase_id')
+
     issue_ids = fields.One2many('project.issue', 'task_id', string='Issues')
     
     issue_count = fields.Integer(string='Issue', compute='_compute_bug_count', store=True)
@@ -52,12 +70,21 @@ class ProjectTask(models.Model):
             users = task.phase_line_ids.mapped('planned_user_ids')
             task.user_ids = users
 
-    # Compute deadline from phase
-    @api.depends('phase_line_ids.planned_end')
-    def _compute_deadline_from_phase(self):
+    # Compute dates from phase
+    @api.depends('phase_line_ids.planned_start', 'phase_line_ids.planned_end')
+    def _compute_dates_from_phase(self):
         for task in self:
+            starts = task.phase_line_ids.mapped('planned_start')
             ends = task.phase_line_ids.mapped('planned_end')
+            
+            valid_starts = [s for s in starts if s]
             valid_ends = [e for e in ends if e]
+            
+            if valid_starts:
+                task.planned_start = min(valid_starts).date()
+            else:
+                task.planned_start = False
+                
             if valid_ends:
                 task.date_deadline = max(valid_ends).date()
             else:
@@ -76,34 +103,88 @@ class ProjectTask(models.Model):
         tasks = super(ProjectTask, self).create(vals_list)
         for task in tasks:
             if task.user_ids and task.project_id:
-                task.project_id._send_teams_notification(
-                    task.user_ids.ids,
-                    f"Task Assignment: {task.name}",
-                    f"You have been assigned to this task in project **{task.project_id.name}**:"
-                )
+                task._send_task_teams_notification(task.user_ids.ids, "Task Assigned")
         return tasks
 
     # Write task
     def write(self, vals):
-        # Store old users to detect changes
-        old_users = {}
-        if 'user_ids' in vals or 'phase_line_ids' in vals:
+        # Fields to track for notifications
+        track_fields = {'user_ids', 'phase_line_ids', 'name', 'stage_id', 'state', 'priority'}
+        
+        old_data = {}
+        if any(f in vals for f in track_fields):
             for task in self:
-                old_users[task.id] = task.user_ids.ids
+                old_data[task.id] = {
+                    'user_ids': task.user_ids.ids,
+                    'name': task.name,
+                    'stage_id': task.stage_id.id,
+                    'state': task.state,
+                    'priority': task.priority
+                }
                 
         res = super(ProjectTask, self).write(vals)
         
         for task in self:
-            if task.id in old_users:
+            if task.id in old_data:
+                # Notify new users
                 current_users = task.user_ids.ids
-                new_users = list(set(current_users) - set(old_users[task.id]))
-                if new_users and task.project_id:
-                    task.project_id._send_teams_notification(
-                        new_users,
-                        f"Task Assignment: {task.name}",
-                        f"You have been assigned to this task in project **{task.project_id.name}**:"
-                    )
+                new_users = list(set(current_users) - set(old_data[task.id]['user_ids']))
+                if new_users:
+                    task._send_task_teams_notification(new_users, "Task Assigned")
+                
+                # Notify existing users of other changes
+                elif current_users:
+                    changed = [f for f in (track_fields - {'user_ids'}) if f in vals]
+                    if changed:
+                        task._send_task_teams_notification(current_users, "Task Updated", changed_fields=changed)
+                    
         return res
+
+    def _send_task_teams_notification(self, user_ids, title_prefix, changed_fields=None):
+        """ Helper to send detailed task notification """
+        self.ensure_one()
+        if not self.project_id or not self.project_id.teams_webhook_url:
+            return
+
+        changed_fields = changed_fields or []
+        priority_map = dict(self._fields['priority'].selection)
+        state_map = dict(self._fields['state'].selection)
+
+        # Get WBS lines (phases) where these users are assigned
+        relevant_phases = self.phase_line_ids.filtered(lambda p: any(u in user_ids for u in p.planned_user_ids.ids))
+
+        lines = [
+            f"Project: **{self.project_id.name}**",
+            ""
+        ]
+
+        is_wbs_changed = 'phase_line_ids' in changed_fields
+
+        lines.append("Task details:")
+        lines.append(f"- Stage: {self.stage_id.name or '-'}" if 'stage_id' in changed_fields else f"- Stage: {self.stage_id.name or '-'}")
+        lines.append(f"- Status: {state_map.get(self.state, self.state)}" if 'state' in changed_fields else f"- Status: {state_map.get(self.state, self.state)}")
+        lines.append(f"- Priority: {priority_map.get(self.priority, self.priority)}" if 'priority' in changed_fields else f"- Priority: {priority_map.get(self.priority, self.priority)}")
+        lines.append("")
+
+        for p_line in relevant_phases:
+            p_start = p_line.planned_start.strftime('%d/%m/%Y') if p_line.planned_start else '-'
+            p_end = p_line.planned_end.strftime('%d/%m/%Y') if p_line.planned_end else '-'
+
+            phase_label = f"Phase: {p_line.phase_id.name}"
+            lines.append(f"{phase_label}" if is_wbs_changed else phase_label)
+
+            p_dates = f"{p_start} - {p_end}"
+            lines.append(f"- Plan start - end: {p_dates}" if is_wbs_changed else f"- Plan start - end: {p_dates}")
+
+            p_hours = f"{p_line.planned_hours}h"
+            lines.append(f"- Plan hours: {p_hours}" if is_wbs_changed else f"- Plan hours: {p_hours}")
+            lines.append("")
+
+        self.project_id._send_teams_notification(
+            user_ids,
+            f"{title_prefix}: {self.name}",
+            "\n".join(lines)
+        )
 
     # Action view issues
     def action_view_issues(self):

@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='project_id']" position="after">
                 <field name="is_project_manager" invisible="1"/>
+                <field name="phase_ids" widget="many2many_tags" options="{'color_field': 'color'}" readonly="1"/>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_issues" type="object" class="oe_stat_button" icon="fa-bug">
@@ -44,7 +45,7 @@
                             <field name="planned_start" string="Plan Start - End" widget="daterange" options='{"end_date_field": "planned_end", "always_range": "0"}' required="planned_start or planned_end"/>
                             <field name="planned_end" column_invisible="1" required="planned_start"/>
                             <field name="planned_user_ids" string="Plan Members" widget="many2many_avatar_user" domain="[('id', 'in', project_member_ids), ('share', '=', False)]"/>
-                            <field name="planned_hours" widget="timesheet_uom" type="measure"/>
+                            <field name="planned_hours" string="Plan Hours" widget="timesheet_uom" type="measure"/>
                             <field name="actual_start" string="Actual Start - End" widget="daterange" options='{"end_date_field": "actual_end", "always_range": "0"}' required="actual_start or actual_end" optional="hide"/>
                             <field name="actual_end" column_invisible="1" required="actual_start" optional="hide"/>
                             <field name="actual_user_ids" string="Actual Members" widget="many2many_avatar_user" domain="[('id', 'in', project_member_ids), ('share', '=', False)]" optional="hide"/>
@@ -112,6 +113,9 @@
                 <attribute name="delete">0</attribute>
                 <attribute name="edit">0</attribute>
             </xpath>
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="phase_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="show"/>
+            </xpath>
         </field>
     </record>
 
@@ -127,16 +131,39 @@
                 <attribute name="quick_create">0</attribute>
                 <attribute name="group_create">0</attribute>
             </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <div t-if="record.phase_ids.raw_value.length &gt; 0">
+                    <span class="text-muted">Phases: </span>
+                    <field name="phase_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                </div>
+            </xpath>
         </field>
     </record>
 
     <record id="view_task_kanban_inherited_wbs" model="ir.ui.view">
         <field name="name">project.task.kanban.inherited.wbs</field>
-        <field name="model">project.task</field>
+        <field name="model" >project.task</field>
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='user_ids']" position="attributes">
                 <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <div t-if="record.phase_ids.raw_value.length &gt; 0">
+                    <span class="text-muted">Phases: </span>
+                    <field name="phase_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_task_tree_inherited_wbs" model="ir.ui.view">
+        <field name="name">project.task.tree.inherited.wbs</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="phase_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="show"/>
             </xpath>
         </field>
     </record>

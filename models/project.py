@@ -272,13 +272,13 @@ class Project(models.Model):
             if project.user_id:
                 project._send_teams_notification(
                     project.user_id.id, 
-                    f"Project Assignment: {project.name}", 
+                    f"Project Assigned: {project.name}", 
                     "You have been assigned as **Project Manager**:"
                 )
             if project.member_ids:
                 project._send_teams_notification(
                     project.member_ids.ids, 
-                    f"Project Assignment: {project.name}", 
+                    f"Project Assigned: {project.name}", 
                     "You have been assigned as **Member**:"
                 )
         return projects
@@ -304,7 +304,7 @@ class Project(models.Model):
                     if new_pm_id and new_pm_id != old_data[project.id]['user_id']:
                         project._send_teams_notification(
                             new_pm_id, 
-                            f"Project Assignment: {project.name}", 
+                            f"Project Assigned: {project.name}", 
                             "You have been assigned as **Project Manager**:"
                         )
                 
@@ -316,7 +316,7 @@ class Project(models.Model):
                     if new_members:
                         project._send_teams_notification(
                             new_members, 
-                            f"Project Assignment: {project.name}", 
+                            f"Project Assigned: {project.name}", 
                             "You have been assigned as **Member**:"
                         )
         return res

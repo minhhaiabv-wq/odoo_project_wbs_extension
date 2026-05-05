@@ -70,7 +70,7 @@ class ProjectIssue(models.Model):
             if issue.assigned_to and issue.project_id:
                 issue.project_id._send_teams_notification(
                     issue.assigned_to.id,
-                    f"Issue Assignment: #{issue.issue_no} - {issue.name}",
+                    f"Issue Assigned: #{issue.issue_no} - {issue.name}",
                     f"You have been assigned to this issue in project **{issue.project_id.name}**:"
                 )
         return issues
@@ -124,7 +124,7 @@ class ProjectIssue(models.Model):
                 if record.assigned_to and record.assigned_to.id != old_assignees.get(record.id):
                     record.project_id._send_teams_notification(
                         record.assigned_to.id,
-                        f"Issue Assignment: #{record.issue_no} - {record.name}",
+                        f"Issue Assigned: #{record.issue_no} - {record.name}",
                         f"You have been assigned to this issue in project **{record.project_id.name}**:"
                     )
         return res
